@@ -205,7 +205,9 @@ fun AppNavHost() {
                 onClickProfile = {
                     navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
                 },
-                onClickAddRight = { /* mini FAB putih kanan bawah */ }
+                onClickAddRight = {
+                    navController.navigate(NavRoute.GROUP_CREATE) { launchSingleTop = true }
+                }
             )
         }
 
@@ -284,11 +286,37 @@ fun AppNavHost() {
                 group = detail,
                 onBack = { navController.popBackStack() },
                 onMemberClick = { /* TODO: detail member */ },
-                onAddMember = { /* TODO: add member */ },
+                onAddMember = {
+                    navController.navigate(NavRoute.GROUP_ADD_MEMBER) {
+                        launchSingleTop = true
+                    }
+                },
                 onLeaveGroup = { /* TODO: leave */ }
             )
         }
 
+        composable(NavRoute.GROUP_CREATE) {
+            GroupCreateScreen(
+                onBack = { navController.popBackStack() },
+                onCreateGroup = { newName ->
+                    // TODO: simpan grup baru pakai newName
+                    // lalu mungkin kembali:
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(NavRoute.GROUP_ADD_MEMBER) {
+            GroupAddMemberScreen(
+                onBack = {
+                    navController.popBackStack()
+                },
+                onAddMember = { usernameOrEmail ->
+                    // TODO: logic nambah anggota group
+                    // contoh: viewModel.addMember(usernameOrEmail)
+                }
+            )
+        }
 
     }
 }
