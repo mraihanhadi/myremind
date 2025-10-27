@@ -8,13 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myremind.ui.screens.AddAlarmScreen
-import com.example.myremind.ui.screens.AlarmEntry
-import com.example.myremind.ui.screens.AlarmScreen
-import com.example.myremind.ui.screens.AlarmSmall
-import com.example.myremind.ui.screens.BottomTab
-import com.example.myremind.ui.screens.DayInfo
-import com.example.myremind.ui.screens.HomeScreen
+import com.example.myremind.ui.screens.*
 
 @Composable
 fun AppNavHost() {
@@ -81,7 +75,9 @@ fun AppNavHost() {
                     // nanti bikin screen group
                 },
                 onClickProfile = {
-                    // nanti bikin screen profile
+                    navController.navigate(NavRoute.PROFILE) {
+                        launchSingleTop = true
+                    }
                 },
                 onClickBell = {
                     // aksi bell di pojok kanan atas
@@ -112,7 +108,9 @@ fun AppNavHost() {
                     // nanti group page
                 },
                 onClickProfile = {
-                    // nanti profile page
+                    navController.navigate(NavRoute.PROFILE) {
+                        launchSingleTop = true
+                    }
                 },
                 onClickEdit = {
                     // tombol pensil kanan atas ditekan
@@ -130,5 +128,43 @@ fun AppNavHost() {
             )
         }
 
+        composable(NavRoute.PROFILE) {
+            ProfileScreen(
+                username = "Username",
+                email = "yesking67@gmail.com",
+                onClickHome = {
+                    navController.navigate(NavRoute.HOME) {
+                        launchSingleTop = true
+                        popUpTo(NavRoute.HOME) { inclusive = false }
+                    }
+                },
+                onClickAlarm = {
+                    navController.navigate(NavRoute.ALARM) {
+                        launchSingleTop = true
+                        popUpTo(NavRoute.ALARM) { inclusive = false }
+                    }
+                },
+                onClickAdd = {
+                    navController.navigate(NavRoute.ADD){
+                        launchSingleTop = true
+                    }
+                },
+                onClickGroup = {
+                    // nanti bikin GroupScreen
+                },
+                onClickProfile = {
+                    // udah di Profile
+                },
+                onEditUsername = {
+                    // open username edit dialog
+                },
+                onEditEmail = {
+                    // open email edit dialog
+                },
+                onSignOut = {
+                    // handle logout
+                }
+            )
+        }
     }
 }

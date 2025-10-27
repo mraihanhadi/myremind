@@ -6,4 +6,5 @@ object NavRoute {
     // nanti kamu bisa tambah: GROUP, PROFILE, ADD, dsb
 
     const val ADD = "add"
+    const val PROFILE = "profile"
 }
