@@ -42,7 +42,7 @@ fun AlarmScreen(
     onClickAdd: () -> Unit,
     onClickGroup: () -> Unit,
     onClickProfile: () -> Unit,
-    onClickEdit: () -> Unit
+    onClickDelete: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -77,7 +77,7 @@ fun AlarmScreen(
                 )
 
                 IconButton(
-                    onClick = onClickEdit,
+                    onClick = onClickDelete,
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(

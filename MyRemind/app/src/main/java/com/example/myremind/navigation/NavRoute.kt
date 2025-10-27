@@ -8,4 +8,5 @@ object NavRoute {
     const val ADD = "add"
     const val PROFILE = "profile"
     const val GROUP = "group"
+    const val ALARM_DELETE = "alarm_delete"
 }

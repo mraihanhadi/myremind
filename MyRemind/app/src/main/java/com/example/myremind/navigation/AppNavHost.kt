@@ -116,8 +116,10 @@ fun AppNavHost() {
                         launchSingleTop = true
                     }
                 },
-                onClickEdit = {
-                    // tombol pensil kanan atas ditekan
+                onClickDelete = {
+                    navController.navigate(NavRoute.ALARM_DELETE){
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -154,7 +156,9 @@ fun AppNavHost() {
                     }
                 },
                 onClickGroup = {
-                    // nanti bikin GroupScreen
+                    navController.navigate(NavRoute.GROUP) {
+                        launchSingleTop = true
+                    }
                 },
                 onClickProfile = {
                     // udah di Profile
@@ -170,6 +174,7 @@ fun AppNavHost() {
                 }
             )
         }
+
         composable(NavRoute.GROUP) {
             val groups = listOf(
                 GroupItem("1", "GRUP 1"),
@@ -189,8 +194,46 @@ fun AppNavHost() {
                 },
                 onClickAddCenter = { /* FAB kuning di tengah */ },
                 onClickGroup = { /* stay */ },
-                onClickProfile = { /* nanti */ },
+                onClickProfile = {
+                    navController.navigate(NavRoute.PROFILE) {
+                        launchSingleTop = true
+                    }
+                },
                 onClickAddRight = { /* mini FAB putih kanan bawah */ }
+            )
+        }
+
+        composable(NavRoute.ALARM_DELETE) {
+            AlarmDeleteScreen(
+                alarms = alarmTiles, // sama data dummy List<AlarmSmall>
+                onBack = {
+                    navController.popBackStack() // balik ke Alarm normal
+                },
+                onClickHome = {
+                    navController.navigate(NavRoute.HOME) {
+                        launchSingleTop = true
+                        popUpTo(NavRoute.HOME) { inclusive = false }
+                    }
+                },
+                onClickAlarm = {
+                    navController.navigate(NavRoute.ALARM) {
+                        launchSingleTop = true
+                        popUpTo(NavRoute.ALARM) { inclusive = false }
+                    }
+                },
+                onClickAdd = {
+                    // nanti: tambah alarm
+                },
+                onClickGroup = {
+                    // nanti group
+                },
+                onClickProfile = {
+                    // nanti profile
+                },
+                onDeleteSelected = { selectedIds ->
+                    // TODO: hapus alarm dengan id di selectedIds
+                    // lalu setelah delete selesai, mungkin popBackStack()
+                }
             )
         }
     }
