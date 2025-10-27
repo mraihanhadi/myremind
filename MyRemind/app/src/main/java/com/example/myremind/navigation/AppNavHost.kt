@@ -11,10 +11,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myremind.ui.screens.*
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.myremind.repository.*
+import com.example.myremind.view.*
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    val authRepo = remember { FakeAuthRepository() }
 
     // ------ Dummy data untuk ditampilkan di screen ------
     val days = listOf(
@@ -52,13 +55,24 @@ fun AppNavHost() {
         navController = navController,
         startDestination = NavRoute.SIGNIN
     ) {
+
         composable(NavRoute.SIGNIN) {
+            val vm = remember { AuthView(authRepo) }
+
+            val loading by vm.loading
+            val error by vm.errorMessage
             LoginScreen(
-                onSignIn = { username, password ->
-                    navController.navigate(NavRoute.HOME) {
-                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                onSignIn = { identifier, password ->
+                    vm.login(
+                        identifier = identifier,
+                        password = password,
+                        onSuccess = {
+                            navController.navigate(NavRoute.HOME) {
+                                popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
                 },
                 onSignUp = {
                     navController.navigate(NavRoute.SIGNUP) {
@@ -67,9 +81,11 @@ fun AppNavHost() {
                     }
                 },
                 onResetPassword = {
-                    // ke layar verifikasi dulu
                     navController.navigate(NavRoute.VERIFY)
-                }
+                },
+                loading = loading,
+                errorMessage = error,
+                onDismissError = { vm.clearError() }
             )
         }
 
@@ -87,27 +103,41 @@ fun AppNavHost() {
                     }
                 }
             )
+        }
 
+        composable(route = NavRoute.SIGNUP) {
+            val vm: AuthView = remember { AuthView(authRepo) }
 
-    }
+            val loading by vm.loading
+            val error by vm.errorMessage
 
-        composable(NavRoute.SIGNUP) {
             SignUpScreen(
                 onBackToLogin = {
-                    navController.navigate(NavRoute.SIGNIN) {
-                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                    // klik "Already have account? Sign In"
+                    navController.navigate(route = NavRoute.SIGNIN) {
+                        popUpTo(route = NavRoute.SIGNIN) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
-                onSubmitSignUp = { username, email, pass, verify ->
-                    // TODO: handle registrasi beneran
 
-                    // setelah berhasil daftar, juga bisa langsung ke LOGIN:
-                    navController.navigate(NavRoute.SIGNIN) {
-                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
+                onSubmitSignUp = { username, email, pass, verify ->
+                    vm.signUp(
+                        username = username,
+                        email = email,
+                        password = pass,
+                        verifyPassword = verify,
+                        onSuccess = {
+                            // sukses signup -> langsung ke HOME, bukan balik login
+                            navController.navigate(route = NavRoute.SIGNIN) {
+                                popUpTo(route = NavRoute.SIGNIN) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                },
+                loading = loading,
+                errorMessage = error,
+                onDismissError = { vm.clearError() }
             )
         }
 
@@ -230,7 +260,9 @@ fun AppNavHost() {
                     // open email edit dialog
                 },
                 onSignOut = {
-                    // handle logout
+                    navController.navigate(NavRoute.SIGNIN) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -350,19 +382,6 @@ fun AppNavHost() {
                     }
                 },
                 onLeaveGroup = { /* TODO: leave */ }
-            )
-        }
-
-        composable(NavRoute.CHANGE_PASSWORD) {
-            ChangePasswordScreen(
-                onSubmit = { newPass ->
-                    // TODO: update password
-                    // selesai → kembali ke SIGN IN (user login ulang) atau langsung ke HOME
-                    navController.navigate(NavRoute.SIGNIN) {
-                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
             )
         }
 

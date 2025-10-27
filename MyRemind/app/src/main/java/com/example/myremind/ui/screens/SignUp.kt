@@ -30,11 +30,15 @@ private val FieldBg = Color(0xFFFFFFFF)
 private val FieldPlaceholder = Color(0xFF9E9E9E)
 private val ButtonBg = Color(0xFFDADADA)
 private val ButtonText = Color(0xFF000000)
+private val ErrorRed = Color(0xFFFF7070)
 
 @Composable
 fun SignUpScreen(
     onBackToLogin: () -> Unit,
-    onSubmitSignUp: (username: String, email: String, password: String, verifyPassword: String) -> Unit
+    onSubmitSignUp: (username: String, email: String, password: String, verifyPassword: String) -> Unit,
+    loading: Boolean,
+    errorMessage: String?,
+    onDismissError: () -> Unit
 ) {
     var username by remember { mutableStateOf(TextFieldValue("")) }
     var email by remember { mutableStateOf(TextFieldValue("")) }
@@ -70,45 +74,72 @@ fun SignUpScreen(
             Spacer(Modifier.height(64.dp))
 
             // Fields
-            SignUpTextField(username, { username = it }, "Username")
+            SignUpTextField(username, { username = it }, "Username", false)
             Spacer(Modifier.height(24.dp))
-            SignUpTextField(email, { email = it }, "Email")
+            SignUpTextField(email, { email = it }, "Email", false)
             Spacer(Modifier.height(24.dp))
-            SignUpTextField(password, { password = it }, "Password", isPassword = true)
+            SignUpTextField(password, { password = it }, "Password", true)
             Spacer(Modifier.height(24.dp))
-            SignUpTextField(verifyPassword, { verifyPassword = it }, "Verify Password", isPassword = true)
+            SignUpTextField(verifyPassword, { verifyPassword = it }, "Verify Password", true)
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
 
-            // Sign Up button (kanan)
+            // Error message (kalau ada)
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = ErrorRed,
+                    fontSize = 16.sp,
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            onDismissError()
+                        }
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            // Sign Up button kanan
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 SignUpButton(
+                    enabled = !loading,
                     onClick = {
-                        onSubmitSignUp(
-                            username.text.trim(),
-                            email.text.trim(),
-                            password.text.trim(),
-                            verifyPassword.text.trim()
-                        )
+                        if (!loading) {
+                            onDismissError()
+                            onSubmitSignUp(
+                                username.text.trim(),
+                                email.text.trim(),
+                                password.text.trim(),
+                                verifyPassword.text.trim()
+                            )
+                        }
                     }
                 )
             }
 
             Spacer(Modifier.weight(1f))
 
-            // Link "Already have an account? Sign In"
+            // "Already have an account? Sign In"
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 40.dp)
                     .clickable(
+                        enabled = !loading,
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
-                        onBackToLogin()
+                        if (!loading) {
+                            onDismissError()
+                            onBackToLogin()
+                        }
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -119,7 +150,6 @@ fun SignUpScreen(
                     textDecoration = TextDecoration.Underline
                 )
             }
-
         }
     }
 }
@@ -129,7 +159,7 @@ private fun SignUpTextField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     placeholder: String,
-    isPassword: Boolean = false
+    isPassword: Boolean
 ) {
     Surface(
         color = FieldBg,
@@ -172,14 +202,16 @@ private fun SignUpTextField(
 
 @Composable
 private fun SignUpButton(
+    enabled: Boolean,
     onClick: () -> Unit
 ) {
     Surface(
-        color = ButtonBg,
+        color = if (enabled) ButtonBg else ButtonBg.copy(alpha = 0.5f),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .clickable(
+                enabled = enabled,
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) { onClick() }
@@ -193,13 +225,11 @@ private fun SignUpButton(
                 color = ButtonText,
                 fontSize = 24.sp
             )
-
             Spacer(Modifier.width(12.dp))
-
             Icon(
                 imageVector = Icons.Default.Person,
-                contentDescription = "Sign up icon",
                 tint = ButtonText,
+                contentDescription = "Sign up icon",
                 modifier = Modifier.size(24.dp)
             )
         }
