@@ -4,4 +4,6 @@ object NavRoute {
     const val HOME = "home"
     const val ALARM = "alarm"
     // nanti kamu bisa tambah: GROUP, PROFILE, ADD, dsb
+
+    const val ADD = "add"
 }

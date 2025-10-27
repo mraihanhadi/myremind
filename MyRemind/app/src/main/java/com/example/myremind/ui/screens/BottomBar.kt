@@ -107,7 +107,7 @@ fun BottomBarWithFabSelectable(
         ) {
             Box(
                 modifier = Modifier
-                    .size(96.dp)
+                    .size(80.dp)
                     .clip(CircleShape)
                     .background(AccentYellow),
                 contentAlignment = Alignment.Center

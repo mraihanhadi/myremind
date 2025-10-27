@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.myremind.ui.screens.AddAlarmScreen
 import com.example.myremind.ui.screens.AlarmEntry
 import com.example.myremind.ui.screens.AlarmScreen
 import com.example.myremind.ui.screens.AlarmSmall
@@ -72,8 +73,9 @@ fun AppNavHost() {
                     }
                 },
                 onClickAdd = {
-                    // nanti ke Add Alarm screen, belum dibuat
-                    // navController.navigate("add")
+                    navController.navigate(NavRoute.ADD) {
+                        launchSingleTop = true
+                    }
                 },
                 onClickGroup = {
                     // nanti bikin screen group
@@ -102,7 +104,9 @@ fun AppNavHost() {
                     // sudah di ALARM
                 },
                 onClickAdd = {
-                    // nanti ke Add Alarm form
+                    navController.navigate(NavRoute.ADD) {
+                        launchSingleTop = true
+                    }
                 },
                 onClickGroup = {
                     // nanti group page
@@ -115,5 +119,16 @@ fun AppNavHost() {
                 }
             )
         }
+
+        composable(NavRoute.ADD) {
+            AddAlarmScreen(
+                onBack = { navController.popBackStack() },
+                onSave = { form ->
+                    // TODO: simpan ke database / ViewModel
+                    navController.popBackStack() // balik setelah save
+                }
+            )
+        }
+
     }
 }
