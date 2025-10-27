@@ -50,8 +50,53 @@ fun AppNavHost() {
     // ------ NavHost utama ------
     NavHost(
         navController = navController,
-        startDestination = NavRoute.HOME
+        startDestination = NavRoute.SIGNIN
     ) {
+
+        composable(NavRoute.SIGNIN) {
+            LoginScreen(
+                onSignIn = { username, password ->
+                    // TODO: cek kredensial di ViewModel/dll.
+                    // kalau sukses, masuk HOME dan hapus login dari back stack
+                    navController.navigate(NavRoute.HOME) {
+                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onSignUp = {
+                    navController.navigate(NavRoute.SIGNUP) {
+                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onResetPassword = {
+
+                }
+            )
+        }
+
+        composable(NavRoute.SIGNUP) {
+            SignUpScreen(
+                onBackToLogin = {
+                    navController.navigate(NavRoute.SIGNIN) {
+                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onSubmitSignUp = { username, email, pass, verify ->
+                    // TODO: handle registrasi beneran
+
+                    // setelah berhasil daftar, juga bisa langsung ke LOGIN:
+                    navController.navigate(NavRoute.SIGNIN) {
+                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+
+
 
         // ---------- HOME SCREEN ROUTE ----------
         composable(NavRoute.HOME) {
