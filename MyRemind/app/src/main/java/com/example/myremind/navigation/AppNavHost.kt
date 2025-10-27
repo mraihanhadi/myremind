@@ -9,6 +9,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myremind.ui.screens.*
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 @Composable
 fun AppNavHost() {
@@ -180,9 +182,15 @@ fun AppNavHost() {
                 GroupItem("1", "GRUP 1"),
                 GroupItem("2", "GRUP 2")
             )
+
             GroupScreen(
                 groups = groups,
-                onGroupClick = { /* TODO: ke detail group */ },
+                onGroupClick = { item ->
+                    // ⬇️ kirim ID saja
+                    navController.navigate(NavRoute.groupInfo(item.id)) {
+                        launchSingleTop = true
+                    }
+                },
                 onClickHome = {
                     navController.navigate(NavRoute.HOME) {
                         launchSingleTop = true
@@ -195,13 +203,12 @@ fun AppNavHost() {
                 onClickAddCenter = { /* FAB kuning di tengah */ },
                 onClickGroup = { /* stay */ },
                 onClickProfile = {
-                    navController.navigate(NavRoute.PROFILE) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
                 },
                 onClickAddRight = { /* mini FAB putih kanan bawah */ }
             )
         }
+
 
         composable(NavRoute.ALARM_DELETE) {
             AlarmDeleteScreen(
@@ -236,5 +243,52 @@ fun AppNavHost() {
                 }
             )
         }
+
+        composable(
+            route = NavRoute.GROUP_INFO_PATTERN,
+            arguments = listOf(
+                navArgument("groupId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: "0"
+
+            // 🔧 Contoh simple loader detail berdasar ID (mock):
+            val detail = when (groupId) {
+                "1" -> GroupDetail(
+                    id = "1",
+                    name = "GRUP 1",
+                    description = "Test group 1",
+                    members = listOf(
+                        GroupMember("Member 1", "Admin"),
+                        GroupMember("Member 2", null)
+                    )
+                )
+                "2" -> GroupDetail(
+                    id = "2",
+                    name = "GRUP 2",
+                    description = "Test group 2",
+                    members = listOf(
+                        GroupMember("Alice", "Admin"),
+                        GroupMember("Bob", null)
+                    )
+                )
+                else -> GroupDetail(
+                    id = groupId,
+                    name = "Unknown Group",
+                    description = "",
+                    members = emptyList()
+                )
+            }
+
+            GroupInfoScreen(
+                group = detail,
+                onBack = { navController.popBackStack() },
+                onMemberClick = { /* TODO: detail member */ },
+                onAddMember = { /* TODO: add member */ },
+                onLeaveGroup = { /* TODO: leave */ }
+            )
+        }
+
+
     }
 }
