@@ -1,0 +1,7 @@
+package com.example.myremind.navigation
+
+object NavRoute {
+    const val HOME = "home"
+    const val ALARM = "alarm"
+    // nanti kamu bisa tambah: GROUP, PROFILE, ADD, dsb
+}
