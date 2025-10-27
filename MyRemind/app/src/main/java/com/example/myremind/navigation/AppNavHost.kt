@@ -72,7 +72,9 @@ fun AppNavHost() {
                     }
                 },
                 onClickGroup = {
-                    // nanti bikin screen group
+                    navController.navigate(NavRoute.GROUP) {
+                        launchSingleTop = true
+                    }
                 },
                 onClickProfile = {
                     navController.navigate(NavRoute.PROFILE) {
@@ -105,7 +107,9 @@ fun AppNavHost() {
                     }
                 },
                 onClickGroup = {
-                    // nanti group page
+                    navController.navigate(NavRoute.GROUP) {
+                        launchSingleTop = true
+                    }
                 },
                 onClickProfile = {
                     navController.navigate(NavRoute.PROFILE) {
@@ -164,6 +168,29 @@ fun AppNavHost() {
                 onSignOut = {
                     // handle logout
                 }
+            )
+        }
+        composable(NavRoute.GROUP) {
+            val groups = listOf(
+                GroupItem("1", "GRUP 1"),
+                GroupItem("2", "GRUP 2")
+            )
+            GroupScreen(
+                groups = groups,
+                onGroupClick = { /* TODO: ke detail group */ },
+                onClickHome = {
+                    navController.navigate(NavRoute.HOME) {
+                        launchSingleTop = true
+                        popUpTo(NavRoute.HOME)
+                    }
+                },
+                onClickAlarm = {
+                    navController.navigate(NavRoute.ALARM) { launchSingleTop = true }
+                },
+                onClickAddCenter = { /* FAB kuning di tengah */ },
+                onClickGroup = { /* stay */ },
+                onClickProfile = { /* nanti */ },
+                onClickAddRight = { /* mini FAB putih kanan bawah */ }
             )
         }
     }
