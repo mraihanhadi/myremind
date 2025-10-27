@@ -52,12 +52,9 @@ fun AppNavHost() {
         navController = navController,
         startDestination = NavRoute.SIGNIN
     ) {
-
         composable(NavRoute.SIGNIN) {
             LoginScreen(
                 onSignIn = { username, password ->
-                    // TODO: cek kredensial di ViewModel/dll.
-                    // kalau sukses, masuk HOME dan hapus login dari back stack
                     navController.navigate(NavRoute.HOME) {
                         popUpTo(NavRoute.SIGNIN) { inclusive = true }
                         launchSingleTop = true
@@ -70,10 +67,29 @@ fun AppNavHost() {
                     }
                 },
                 onResetPassword = {
-
+                    // ke layar verifikasi dulu
+                    navController.navigate(NavRoute.VERIFY)
                 }
             )
         }
+
+        composable(NavRoute.VERIFY) {
+            LoginVerificationScreen(
+                onResend = { emailOrCode ->
+                    // TODO: kirim ulang kode verifikasi
+                },
+                onVerify = { emailOrCode, username ->
+                    // TODO: validasi kode + username
+                    // kalau sukses, lanjut ke ganti password dan hapus VERIFY dari back stack
+                    navController.navigate(NavRoute.CHANGE_PASSWORD) {
+                        popUpTo(NavRoute.VERIFY) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+
+
+    }
 
         composable(NavRoute.SIGNUP) {
             SignUpScreen(
@@ -94,9 +110,6 @@ fun AppNavHost() {
                 }
             )
         }
-
-
-
 
         // ---------- HOME SCREEN ROUTE ----------
         composable(NavRoute.HOME) {
@@ -337,6 +350,19 @@ fun AppNavHost() {
                     }
                 },
                 onLeaveGroup = { /* TODO: leave */ }
+            )
+        }
+
+        composable(NavRoute.CHANGE_PASSWORD) {
+            ChangePasswordScreen(
+                onSubmit = { newPass ->
+                    // TODO: update password
+                    // selesai → kembali ke SIGN IN (user login ulang) atau langsung ke HOME
+                    navController.navigate(NavRoute.SIGNIN) {
+                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 
