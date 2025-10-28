@@ -1,4 +1,4 @@
-package com.example.myremind.ui.screens
+package com.example.myremind.ui.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,8 +36,6 @@ fun ProfileScreen(
     onClickAdd: () -> Unit,
     onClickGroup: () -> Unit,
     onClickProfile: () -> Unit,
-    onEditUsername: () -> Unit,
-    onEditEmail: () -> Unit,
     onSignOut: () -> Unit
 ) {
     Box(
@@ -100,10 +98,6 @@ fun ProfileScreen(
                     )
 
                     Spacer(Modifier.width(12.dp))
-
-                    EditBadge(
-                        onClick = onEditUsername
-                    )
                 }
             }
 
@@ -157,10 +151,6 @@ fun ProfileScreen(
                         )
 
                         Spacer(Modifier.width(12.dp))
-
-                        EditBadge(
-                            onClick = onEditEmail
-                        )
                     }
                 }
             }

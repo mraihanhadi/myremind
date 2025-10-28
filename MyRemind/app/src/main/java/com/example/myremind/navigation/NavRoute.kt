@@ -17,7 +17,7 @@ object NavRoute {
     const val GROUP_INFO_PATTERN = "group_info/{groupId}"
     fun groupInfo(groupId: String) = "group_info/$groupId"
 
-    const val CHANGE_PASSWORD = "change_password"
+    const val CHANGE_PASSWORD = "change_password/{emailArg}"
 
 
     const val GROUP_ADD_MEMBER = "group_add_member"

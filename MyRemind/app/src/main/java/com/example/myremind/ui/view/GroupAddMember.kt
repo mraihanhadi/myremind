@@ -1,4 +1,4 @@
-package com.example.myremind.ui.screens
+package com.example.myremind.ui.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,9 +37,16 @@ import androidx.compose.runtime.remember
 
 @Composable
 fun GroupAddMemberScreen(
+    groupName: String,
+    loading: Boolean,
+    errorMessage: String?,
+    onDismissError: () -> Unit,
     onBack: () -> Unit,
-    onAddMember: (String) -> Unit
+    onAddMember: (email: String) -> Unit
 ) {
+    var email by remember { mutableStateOf(TextFieldValue("")) }
+    val canAdd = email.text.isNotBlank() && !loading
+
     var query by remember { mutableStateOf(TextFieldValue("")) }
 
     Box(
@@ -51,8 +58,6 @@ fun GroupAddMemberScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-
-            // ===== HEADER: "<  Group" =====
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -81,8 +86,6 @@ fun GroupAddMemberScreen(
                     lineHeight = 44.sp
                 )
             }
-
-            // ===== INPUT FIELD PUTIH (Search user) =====
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -146,10 +149,6 @@ fun GroupAddMemberScreen(
     }
 }
 
-// =====================================================================
-// Tombol kuning kapsul "Add   +"
-// (sama style dengan CreateGroupButton, cuma teksnya "Add")
-// =====================================================================
 @Composable
 fun AddMemberButton(
     enabled: Boolean,

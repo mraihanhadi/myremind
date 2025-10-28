@@ -1,28 +1,39 @@
-package com.example.myremind.ui.screens
+package com.example.myremind.ui.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private val PlaceholderGray = Color(0xFF9E9E9E)
+private val ErrorRed = Color(0xFFFF7070)
+
 @Composable
 fun ChangePasswordScreen(
+    loading: Boolean,
+    errorMessage: String?,
+    onDismissError: () -> Unit,
     onSubmit: (newPassword: String) -> Unit
 ) {
     var password by remember { mutableStateOf("") }
-    val canSubmit = password.isNotBlank()
+
+    val canSubmit = password.isNotBlank() && !loading
 
     Box(
         modifier = Modifier
@@ -38,20 +49,33 @@ fun ChangePasswordScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(120.dp))
+            Spacer(Modifier.height(80.dp))
 
-            // batas lebar konten biar gak melebar di device besar
+            Text(
+                text = "New Password",
+                color = TextWhite,
+                fontSize = 32.sp
+            )
+
+            Spacer(Modifier.height(32.dp))
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .widthIn(max = 360.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Field: New Password (pill putih)
                 TextField(
                     value = password,
                     onValueChange = { password = it },
-                    placeholder = { Text("New Password", color = Color(0xFF9E9E9E)) },
+                    placeholder = {
+                        Text(
+                            text = "New Password",
+                            color = PlaceholderGray,
+                            fontSize = 20.sp
+                        )
+                    },
+                    visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = TextFieldDefaults.colors(
@@ -69,9 +93,26 @@ fun ChangePasswordScreen(
                         .height(52.dp)
                 )
 
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(12.dp))
 
-                // Tombol: rata kanan seperti di gambar
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        color = ErrorRed,
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                onDismissError()
+                            }
+                    )
+                }
+
+                Spacer(Modifier.height(24.dp))
+
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.CenterEnd
@@ -79,8 +120,15 @@ fun ChangePasswordScreen(
                     Surface(
                         color = if (canSubmit) Color.White else Color(0xFFEDEDED),
                         shape = RoundedCornerShape(14.dp),
-                        onClick = { if (canSubmit) onSubmit(password) },
-                        enabled = canSubmit
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable(
+                                enabled = canSubmit,
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                onSubmit(password)
+                            }
                     ) {
                         Row(
                             modifier = Modifier
@@ -88,7 +136,10 @@ fun ChangePasswordScreen(
                                 .padding(horizontal = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Ubah Password", color = Color(0xFF111111))
+                            Text(
+                                text = "Ubah Password",
+                                color = Color(0xFF111111)
+                            )
                             Spacer(Modifier.width(8.dp))
                             Icon(
                                 imageVector = Icons.Default.Check,
@@ -102,4 +153,3 @@ fun ChangePasswordScreen(
         }
     }
 }
-

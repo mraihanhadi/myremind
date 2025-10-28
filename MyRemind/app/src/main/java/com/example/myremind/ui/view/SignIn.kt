@@ -1,4 +1,4 @@
-package com.example.myremind.ui.screens
+package com.example.myremind.ui.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -94,25 +94,8 @@ fun LoginScreen(
                 isPassword = true
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // Reset Password link
-            Text(
-                text = "Reset Password",
-                color = TextWhite,
-                fontSize = 20.sp,
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) {
-                    onResetPassword()
-                }
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            // Error message (kalau ada)
             if (errorMessage != null) {
                 Text(
                     text = errorMessage,
@@ -129,6 +112,24 @@ fun LoginScreen(
                         }
                 )
             }
+
+            Spacer(Modifier.height(4.dp))
+
+            // Reset Password link
+            Text(
+                text = "Reset Password",
+                color = TextWhite,
+                fontSize = 20.sp,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
+                    onResetPassword()
+                }
+            )
+
+            Spacer(Modifier.height(24.dp))
 
             // Sign In button
             Box(

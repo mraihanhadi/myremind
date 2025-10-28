@@ -1,4 +1,4 @@
-package com.example.myremind.ui.screens
+package com.example.myremind.ui.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

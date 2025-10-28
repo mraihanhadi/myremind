@@ -2,22 +2,29 @@ package com.example.myremind.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myremind.ui.screens.*
+import com.example.myremind.ui.view.*
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.myremind.repository.*
-import com.example.myremind.view.*
+import androidx.compose.runtime.LaunchedEffect
+import com.example.myremind.controller.AuthController
+import com.example.myremind.controller.GroupController
+import com.example.myremind.model.*
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
-    val authRepo = remember { FakeAuthRepository() }
+    val authRepo = remember { MemoryAuthRepository() }
+    val authController = remember { AuthController(authRepo) }
+    val groupRepository = remember { MemoryGroupRepository() }
+    val groupController = remember { GroupController(groupRepository) }
+    var refreshFlag by remember { mutableStateOf(0) }
+    fun refreshUI() { refreshFlag++ }
 
     // ------ Dummy data untuk ditampilkan di screen ------
     val days = listOf(
@@ -57,63 +64,42 @@ fun AppNavHost() {
     ) {
 
         composable(NavRoute.SIGNIN) {
-            val vm = remember { AuthView(authRepo) }
+            val a = refreshFlag
 
-            val loading by vm.loading
-            val error by vm.errorMessage
             LoginScreen(
                 onSignIn = { identifier, password ->
-                    vm.login(
+                    authController.signIn(
                         identifier = identifier,
                         password = password,
                         onSuccess = {
-                            navController.navigate(NavRoute.HOME) {
-                                popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                            navController.navigate("home") {
+                                popUpTo("login") { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
                     )
+                    refreshUI()
                 },
                 onSignUp = {
-                    navController.navigate(NavRoute.SIGNUP) {
-                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.navigate("signup")
                 },
                 onResetPassword = {
-                    navController.navigate(NavRoute.VERIFY)
+                    navController.navigate(route = NavRoute.VERIFY)
                 },
-                loading = loading,
-                errorMessage = error,
-                onDismissError = { vm.clearError() }
-            )
-        }
-
-        composable(NavRoute.VERIFY) {
-            LoginVerificationScreen(
-                onResend = { emailOrCode ->
-                    // TODO: kirim ulang kode verifikasi
-                },
-                onVerify = { emailOrCode, username ->
-                    // TODO: validasi kode + username
-                    // kalau sukses, lanjut ke ganti password dan hapus VERIFY dari back stack
-                    navController.navigate(NavRoute.CHANGE_PASSWORD) {
-                        popUpTo(NavRoute.VERIFY) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                loading = authController.loading,
+                errorMessage = authController.lastError,
+                onDismissError = {
+                    authController.clearError()
+                    refreshUI()
                 }
             )
         }
 
-        composable(route = NavRoute.SIGNUP) {
-            val vm: AuthView = remember { AuthView(authRepo) }
-
-            val loading by vm.loading
-            val error by vm.errorMessage
+        composable(NavRoute.SIGNUP) {
+            val refresh = refreshFlag
 
             SignUpScreen(
                 onBackToLogin = {
-                    // klik "Already have account? Sign In"
                     navController.navigate(route = NavRoute.SIGNIN) {
                         popUpTo(route = NavRoute.SIGNIN) { inclusive = true }
                         launchSingleTop = true
@@ -121,13 +107,12 @@ fun AppNavHost() {
                 },
 
                 onSubmitSignUp = { username, email, pass, verify ->
-                    vm.signUp(
+                    authController.signUp(
                         username = username,
                         email = email,
                         password = pass,
                         verifyPassword = verify,
                         onSuccess = {
-                            // sukses signup -> langsung ke HOME, bukan balik login
                             navController.navigate(route = NavRoute.SIGNIN) {
                                 popUpTo(route = NavRoute.SIGNIN) { inclusive = true }
                                 launchSingleTop = true
@@ -135,9 +120,58 @@ fun AppNavHost() {
                         }
                     )
                 },
-                loading = loading,
-                errorMessage = error,
-                onDismissError = { vm.clearError() }
+                loading = authController.loading,
+                errorMessage = authController.lastError,
+                onDismissError = {
+                    authController.clearError()
+                    refreshUI()
+                }
+            )
+        }
+
+        composable(NavRoute.VERIFY) {
+            LoginVerificationScreen(
+                loading = authController.loading,
+                errorMessage = authController.lastError,
+                onDismissError = { authController.clearError() },
+                onResend = { /* optional, bisa kosong */ },
+                onVerify = { identifier ->
+                    // langsung navigate ke CHANGE_PASSWORD sambil bawa email/username itu
+                    navController.navigate(
+                        "change_password/${identifier}"
+                    ) {
+                        popUpTo(NavRoute.VERIFY) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = NavRoute.CHANGE_PASSWORD,
+            arguments = listOf(
+                navArgument("emailArg") { defaultValue = "" }
+            )
+        ) { backStackEntry ->
+            val emailArg = backStackEntry.arguments?.getString("emailArg") ?: ""
+
+            ChangePasswordScreen(
+                loading = authController.loading,
+                errorMessage = authController.lastError,
+                onDismissError = { authController.clearError() },
+                onSubmit = { newPassword ->
+                    authController.resetPassword(
+                        email = emailArg,
+                        newPassword = newPassword,
+                        onDone = {
+                            // setelah password diganti, balik ke LOGIN
+                            navController.navigate(NavRoute.SIGNIN) {
+                                popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                }
             )
         }
 
@@ -225,9 +259,11 @@ fun AppNavHost() {
         }
 
         composable(NavRoute.PROFILE) {
+            val username = authController.currentUser?.getUsername()
+            val currentEmail = authController.currentUser?.getEmail()
             ProfileScreen(
-                username = "Username",
-                email = "yesking67@gmail.com",
+                username = username.toString(),
+                email = currentEmail.toString(),
                 onClickHome = {
                     navController.navigate(NavRoute.HOME) {
                         launchSingleTop = true
@@ -253,12 +289,6 @@ fun AppNavHost() {
                 onClickProfile = {
                     // udah di Profile
                 },
-                onEditUsername = {
-                    // open username edit dialog
-                },
-                onEditEmail = {
-                    // open email edit dialog
-                },
                 onSignOut = {
                     navController.navigate(NavRoute.SIGNIN) {
                         launchSingleTop = true
@@ -268,16 +298,17 @@ fun AppNavHost() {
         }
 
         composable(NavRoute.GROUP) {
-            val groups = listOf(
-                GroupItem("1", "GRUP 1"),
-                GroupItem("2", "GRUP 2")
-            )
+            val currentEmail = authController.currentUser?.getEmail() ?:""
+            LaunchedEffect(currentEmail) {
+                if (currentEmail.isNotBlank()) {
+                    groupController.refreshGroupsFor(currentEmail)
+                }
+            }
 
             GroupScreen(
-                groups = groups,
-                onGroupClick = { item ->
-                    // ⬇️ kirim ID saja
-                    navController.navigate(NavRoute.groupInfo(item.id)) {
+                groups = groupController.groupsForCurrentUser,
+                onGroupClick = { groupId ->
+                    navController.navigate("group_info/$groupId") {
                         launchSingleTop = true
                     }
                 },
@@ -290,7 +321,11 @@ fun AppNavHost() {
                 onClickAlarm = {
                     navController.navigate(NavRoute.ALARM) { launchSingleTop = true }
                 },
-                onClickAddCenter = { /* FAB kuning di tengah */ },
+                onClickAddCenter = {
+                    navController.navigate(NavRoute.ADD){
+                        launchSingleTop = true
+                    }
+                },
                 onClickGroup = { /* stay */ },
                 onClickProfile = {
                     navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
@@ -339,71 +374,116 @@ fun AppNavHost() {
         composable(
             route = NavRoute.GROUP_INFO_PATTERN,
             arguments = listOf(
-                navArgument("groupId") { type = NavType.StringType }
+                navArgument("groupId") { type = NavType.IntType }
             )
-        ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId") ?: "0"
 
-            // 🔧 Contoh simple loader detail berdasar ID (mock):
-            val detail = when (groupId) {
-                "1" -> GroupDetail(
-                    id = "1",
-                    name = "GRUP 1",
-                    description = "Test group 1",
-                    members = listOf(
-                        GroupMember("Member 1", "Admin"),
-                        GroupMember("Member 2", null)
-                    )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getInt("groupId") ?: -1
+            val groupEntity = groupController.getGroupDetail(groupId)
+            val uiDetail = if (groupEntity != null) {
+                val membersEmails = groupEntity.getMembers()
+
+                GroupDetail(
+                    id = groupEntity.getGroupId().toString(),
+                    name = groupEntity.getGroupName(),
+                    description = groupEntity.getDescription(),
+                    members = membersEmails.mapIndexed { index, email ->
+                        GroupMember(
+                            name = email,
+                            role = if (index == 0) "Admin" else null
+                        )
+                    }
                 )
-                "2" -> GroupDetail(
-                    id = "2",
-                    name = "GRUP 2",
-                    description = "Test group 2",
-                    members = listOf(
-                        GroupMember("Alice", "Admin"),
-                        GroupMember("Bob", null)
-                    )
-                )
-                else -> GroupDetail(
-                    id = groupId,
+            } else {
+                GroupDetail(
+                    id = groupId.toString(),
                     name = "Unknown Group",
                     description = "",
                     members = emptyList()
                 )
             }
 
+            val currentEmail = authController.currentUser?.getEmail().orEmpty()
+
             GroupInfoScreen(
-                group = detail,
+                group = uiDetail,
                 onBack = { navController.popBackStack() },
-                onMemberClick = { /* TODO: detail member */ },
+                onMemberClick = { member ->
+
+                },
                 onAddMember = {
                     navController.navigate(NavRoute.GROUP_ADD_MEMBER) {
                         launchSingleTop = true
                     }
                 },
-                onLeaveGroup = { /* TODO: leave */ }
+                onLeaveGroup = {
+                    if (groupId != -1 && currentEmail.isNotBlank()) {
+                        groupController.removeUser(
+                            email = currentEmail,
+                            groupId = groupId,
+                            currentUserEmail = currentEmail
+                        ) {
+                            navController.navigate(NavRoute.GROUP) {
+                                popUpTo(NavRoute.GROUP) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                }
             )
         }
 
         composable(NavRoute.GROUP_CREATE) {
+            val creatorEmail = authController.currentUser?.getEmail().orEmpty()
+
             GroupCreateScreen(
+                loading = false,
+                errorMessage = groupController.lastError,
+                onDismissError = { groupController.clearError() },
                 onBack = { navController.popBackStack() },
-                onCreateGroup = { newName ->
-                    // TODO: simpan grup baru pakai newName
-                    // lalu mungkin kembali:
-                    navController.popBackStack()
+                onCreateGroup = { groupName, description ->
+                    groupController.createGroup(
+                        creatorEmail = creatorEmail,
+                        groupName = groupName,
+                        description = description
+                    ) {
+                        _newgroup ->
+                        navController.navigate(NavRoute.GROUP) {
+                            popUpTo(NavRoute.GROUP) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 }
             )
         }
 
         composable(NavRoute.GROUP_ADD_MEMBER) {
+            val currentUserEmail = authController.currentUser?.getEmail().orEmpty()
+            val currentGroup = groupController.lastCreatedGroup
+                ?: groupController.groupsForCurrentUser.lastOrNull()
+
+            val groupId = currentGroup?.getGroupId() ?: -1
+            val groupName = currentGroup?.getGroupName() ?: "Unknown Group"
             GroupAddMemberScreen(
+                groupName = groupName,
+                loading = false,
+                errorMessage = groupController.lastError,
+                onDismissError = { groupController.clearError() },
                 onBack = {
                     navController.popBackStack()
                 },
-                onAddMember = { usernameOrEmail ->
-                    // TODO: logic nambah anggota group
-                    // contoh: viewModel.addMember(usernameOrEmail)
+                onAddMember = { emailToAdd ->
+                    if (groupId != -1 && currentUserEmail.isNotBlank()) {
+                        groupController.addUser(
+                            email = emailToAdd,
+                            groupId = groupId,
+                            currentUserEmail = currentUserEmail
+                        ) { updatedGroup ->
+                            // Berhasil nambah member → refresh list & balik
+                            groupController.refreshGroupsFor(currentUserEmail)
+                            navController.popBackStack()
+                        }
+                    }
                 }
             )
         }

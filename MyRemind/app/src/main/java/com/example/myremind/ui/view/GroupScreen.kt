@@ -1,4 +1,4 @@
-package com.example.myremind.ui.screens
+package com.example.myremind.ui.view
 
 
 import androidx.compose.foundation.background
@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myremind.model.Group
+import com.example.myremind.controller.GroupController
 
 private val CircleRed = Color(0xFFFF2B2B)
 
@@ -32,15 +34,14 @@ data class GroupItem(
 
 @Composable
 fun GroupScreen(
-    groups: List<GroupItem>,
-    onGroupClick: (GroupItem) -> Unit,
-    // bottom bar actions
+    groups: List<Group>, // dari controller.groupsForCurrentUser
+    onGroupClick: (groupId: Int) -> Unit,
+
     onClickHome: () -> Unit,
     onClickAlarm: () -> Unit,
-    onClickAddCenter: () -> Unit,     // FAB kuning di tengah
+    onClickAddCenter: () -> Unit,
     onClickGroup: () -> Unit,
     onClickProfile: () -> Unit,
-    // mini FAB putih kanan-bawah
     onClickAddRight: () -> Unit
 ) {
     Box(
@@ -51,9 +52,8 @@ fun GroupScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 110.dp) // ruang untuk bottom bar
+                .padding(bottom = 110.dp)
         ) {
-            // Header
             Text(
                 text = "Group",
                 color = TextWhite,
@@ -63,38 +63,40 @@ fun GroupScreen(
                     .padding(start = 24.dp, end = 24.dp, top = 28.dp, bottom = 20.dp)
             )
 
-            // List grup
-            LazyColumn(
+            androidx.compose.foundation.lazy.LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(groups, key = { it.id }) { item ->
+                items(
+                    items = groups,
+                    key = { it.getGroupId() }
+                ) { group ->
                     GroupCard(
-                        name = item.name,
-                        onClick = { onGroupClick(item) }
+                        name = group.getGroupName(),
+                        onClick = {
+                            onGroupClick(group.getGroupId())
+                        }
                     )
                 }
             }
         }
 
-        // Bottom bar (tab Group aktif)
         BottomBarWithFabSelectable(
             modifier = Modifier.align(Alignment.BottomCenter),
             selectedTab = BottomTab.GROUP,
             onClickHome = onClickHome,
             onClickAlarm = onClickAlarm,
-            onClickAdd = onClickAddCenter,   // FAB kuning tengah
+            onClickAdd = onClickAddCenter,
             onClickGroup = onClickGroup,
             onClickProfile = onClickProfile
         )
 
-        // MINI FAB PUTIH (+) KANAN-BAWAH
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 98.dp) // naik sedikit di atas bottom bar
+                .padding(end = 20.dp, bottom = 98.dp)
                 .size(56.dp)
                 .clip(CircleShape)
                 .background(Color.White),
@@ -111,6 +113,7 @@ fun GroupScreen(
         }
     }
 }
+
 
 @Composable
 private fun GroupCard(
