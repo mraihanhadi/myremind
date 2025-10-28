@@ -38,68 +38,86 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myremind.model.AddAlarmForm
-import com.example.myremind.model.SelectableGroupOption
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import com.example.myremind.model.AddAlarmForm
+import com.example.myremind.model.SelectableGroupOption
+import com.example.myremind.model.EditableAlarmData
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddAlarmScreen(
+fun EditAlarmScreen(
+    alarm: EditableAlarmData,
     groupChoices: List<SelectableGroupOption>,
     onBack: () -> Unit,
-    onSave: (AddAlarmForm) -> Unit,
+    onSaveChanges: (AddAlarmForm) -> Unit
 ) {
-    // ---------- STATE FORM ----------
-    var title by remember { mutableStateOf(TextFieldValue("")) }
-    var desc by remember { mutableStateOf(TextFieldValue("")) } // kalau kamu mau pakai nanti
-    var days by remember { mutableStateOf(List(7) { false }) } // urutan S M T W T F S
+    // mirip AddAlarmScreen tapi state awal = alarm.* dan label tombol beda
 
-    val cal = remember { Calendar.getInstance() }
+    // title
+    var title by remember { mutableStateOf(TextFieldValue(alarm.title)) }
 
-    var hour by remember { mutableStateOf<Int?>(null) }
-    var minute by remember { mutableStateOf<Int?>(null) }
+    // days (copy agar bisa toggle)
+    var days by remember { mutableStateOf(alarm.repeatDays.toMutableList()) }
+
+    // date/hours
+    var dateMillis by remember { mutableStateOf(alarm.dateMillis) }
+    var hour by remember { mutableStateOf(alarm.hour) }
+    var minute by remember { mutableStateOf(alarm.minute) }
 
     // dropdown group
     var expanded by remember { mutableStateOf(false) }
-    var selectedTarget by remember {
-        mutableStateOf(
-            groupChoices.firstOrNull() ?: SelectableGroupOption(
-                label = "Personal",
-                ownerType = "personal",
-                groupId = null,
-                groupName = null
-            )
+
+    // kita pilih opsi awal berdasarkan alarm.ownerType/groupId
+    val initialSelectedTarget = remember {
+        // coba cari kecocokan di groupChoices
+        groupChoices.firstOrNull { choice ->
+            if (alarm.ownerType == "personal") {
+                choice.ownerType == "personal"
+            } else {
+                choice.ownerType == "group" &&
+                        choice.groupId == alarm.groupId
+            }
+        } ?: SelectableGroupOption(
+            label = if (alarm.ownerType == "personal") "Personal"
+            else (alarm.groupName ?: "Unknown Group"),
+            ownerType = alarm.ownerType,
+            groupId = alarm.groupId,
+            groupName = alarm.groupName
         )
     }
 
-    // picker dialog flags
+    var selectedTarget by remember { mutableStateOf(initialSelectedTarget) }
+
+    // date/time text same logic as AddAlarmScreen
+    val cal = remember { java.util.Calendar.getInstance() }
+
+    val dateFmt = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()) }
+    val dateText = remember(dateMillis) {
+        dateMillis?.let { dateFmt.format(it) } ?: "dd/mm/yyyy"
+    }
+    val timeText = remember(hour, minute) {
+        if (hour != null && minute != null) {
+            String.format(java.util.Locale.getDefault(), "%02d:%02d", hour, minute)
+        } else "00:00"
+    }
+
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
-    // pretty text utk date & time
-    val dateFmt = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
-    val timeText = remember(hour, minute) {
-        if (hour != null && minute != null) {
-            String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
-        } else {
-            "00:00"
-        }
-    }
-
+    // UI layout sangat mirip AddAlarmScreen
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(ScreenBlack)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-
             // HEADER
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -115,7 +133,7 @@ fun AddAlarmScreen(
                     )
                 }
                 Text(
-                    text = "Alarm",
+                    text = "Edit Alarm",
                     color = TextWhite,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -123,7 +141,7 @@ fun AddAlarmScreen(
                 )
             }
 
-            // KARTU FORM
+            // CARD FORM
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -131,8 +149,7 @@ fun AddAlarmScreen(
                     .background(CardDark)
                     .padding(20.dp)
             ) {
-
-                // JUDUL
+                // TITLE
                 AppInputPill(
                     value = title,
                     onValueChange = { title = it },
@@ -141,24 +158,20 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                Spacer(Modifier.height(16.dp))
-
-                // pilih hari
+                // Repeat days
                 DaysSelector(
                     days = days,
                     onToggle = { idx ->
-                        days = days.toMutableList().also { list ->
-                            list[idx] = !list[idx]
-                        }
+                        days = days.toMutableList().also { it[idx] = !it[idx] }
                     }
                 )
 
                 Spacer(Modifier.height(10.dp))
 
-                // PICKER TARGET (personal / salah satu grup user)
+                // GROUP PICKER
                 GroupPickerField(
-                    selectedLabel = selectedTarget.label,
-                    onClick = { expanded = true }
+                    selected = selectedTarget.label,
+                    onClick = { expanded = !expanded }
                 )
 
                 DropdownMenu(
@@ -185,9 +198,22 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
+                // DATE PICKER
+                PillButtonField(
+                    text = dateText,
+                    trailing = {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = "Pick date",
+                            tint = Color.Black
+                        )
+                    },
+                    onClick = { showDatePicker = true }
+                )
+
                 Spacer(Modifier.height(10.dp))
 
-                // waktu
+                // TIME PICKER
                 PillButtonField(
                     text = timeText,
                     trailing = {
@@ -202,10 +228,10 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(20.dp))
 
-                // SAVE
+                // SAVE CHANGES BUTTON
                 Button(
                     onClick = {
-                        onSave(
+                        onSaveChanges(
                             AddAlarmForm(
                                 title = title.text.trim(),
                                 days = days,
@@ -225,14 +251,37 @@ fun AddAlarmScreen(
                     ),
                     contentPadding = PaddingValues(horizontal = 28.dp)
                 ) {
-                    Text("Save", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Save Changes", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.width(8.dp))
-                    Icon(Icons.Default.Check, contentDescription = "Save")
+                    Icon(Icons.Default.Check, contentDescription = "Save Changes")
                 }
             }
         }
 
-        // ---------- TIME PICKER DIALOG ----------
+        // date picker dialog
+        if (showDatePicker) {
+            val dateState = rememberDatePickerState(
+                initialSelectedDateMillis = dateMillis
+            )
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            dateMillis = dateState.selectedDateMillis
+                            showDatePicker = false
+                        }
+                    ) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                }
+            ) {
+                DatePicker(state = dateState)
+            }
+        }
+
+        // time picker dialog
         if (showTimePicker) {
             val timeState = rememberTimePickerState(
                 initialHour = hour ?: cal.get(Calendar.HOUR_OF_DAY),
@@ -242,13 +291,11 @@ fun AddAlarmScreen(
             AlertDialog(
                 onDismissRequest = { showTimePicker = false },
                 confirmButton = {
-                    TextButton(
-                        onClick = {
-                            hour = timeState.hour
-                            minute = timeState.minute
-                            showTimePicker = false
-                        }
-                    ) { Text("OK") }
+                    TextButton(onClick = {
+                        hour = timeState.hour
+                        minute = timeState.minute
+                        showTimePicker = false
+                    }) { Text("OK") }
                 },
                 dismissButton = {
                     TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
@@ -265,10 +312,6 @@ fun AddAlarmScreen(
         }
     }
 }
-
-/* =========================================================
- * REUSABLE UI PIECES (sama seperti sebelumnya, tapi dirapikan)
- * ========================================================= */
 
 @Composable
 private fun AppInputPill(
@@ -397,30 +440,25 @@ private fun DaysSelector(
 
 @Composable
 private fun GroupPickerField(
-    selectedLabel: String,
+    selected: String,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) { onClick() }
+            .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = selectedLabel,
+            text = selected,
             color = Color(0xFF444444),
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold
         )
-
-        // caret ▼
         Text(
             text = "▼",
             color = Color.Black,
@@ -429,3 +467,4 @@ private fun GroupPickerField(
         )
     }
 }
+

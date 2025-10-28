@@ -12,9 +12,9 @@ import com.example.myremind.ui.view.*
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.compose.runtime.LaunchedEffect
-import com.example.myremind.controller.AuthController
-import com.example.myremind.controller.GroupController
+import com.example.myremind.controller.*
 import com.example.myremind.model.*
+import com.example.myremind.ui.mapper.*
 
 @Composable
 fun AppNavHost() {
@@ -24,8 +24,10 @@ fun AppNavHost() {
     val groupRepository = remember { MemoryGroupRepository() }
     val groupController = remember { GroupController(groupRepository) }
     var refreshFlag by remember { mutableStateOf(0) }
+    val alarmRepo = remember { MemoryAlarmRepository() }
+    val alarmController = remember { AlarmController(alarmRepo) }
+    val userGroupNames = groupController.groupsForCurrentUser.map { it.getGroupName() }
     fun refreshUI() { refreshFlag++ }
-
     // ------ Dummy data untuk ditampilkan di screen ------
     val days = listOf(
         DayInfo("S", true),
@@ -49,6 +51,7 @@ fun AppNavHost() {
 
     val alarmTiles = List(6) { i ->
         AlarmSmall(
+            id = i + 1,
             label = "Work",
             time = "8:30",
             ampm = "AM",
@@ -177,16 +180,32 @@ fun AppNavHost() {
 
         // ---------- HOME SCREEN ROUTE ----------
         composable(NavRoute.HOME) {
+
+            // pastikan membership group user aktual
+            val email = authController.currentUser?.getEmail() ?: ""
+            // (kalau belum dipanggil sebelumnya, panggil di sini)
+            LaunchedEffect(email) {
+                groupController.refreshGroupsFor(email)
+            }
+
+            // list groupId yg user join
+            val joinedGroupIds = groupController.groupsForCurrentUser
+                .map { it.getGroupId() }
+
+            // refresh alarm yg visible buat user ini
+            LaunchedEffect(joinedGroupIds) {
+                alarmController.refresh(joinedGroupIds)
+            }
+
+            // map alarm → UI model buat HOME
+            val homeAlarms = alarmController.alarmList.map { it.toAlarmEntry() }
+
             HomeScreen(
-                username = "User",
+                username = authController.currentUser?.getUsername() ?: "User",
                 alarms = homeAlarms,
-                onClickHome = {
-                    // sudah di HOME, jadi gak pindah
-                },
+                onClickHome = {  },
                 onClickAlarm = {
-                    // pindah ke Alarm
                     navController.navigate(NavRoute.ALARM) {
-                        // optional: biar gak numpuk banyak backstack home -> alarm -> home
                         launchSingleTop = true
                     }
                 },
@@ -205,26 +224,36 @@ fun AppNavHost() {
                         launchSingleTop = true
                     }
                 },
-                onClickBell = {
-                    // aksi bell di pojok kanan atas
-                }
+                onClickBell = {}
             )
         }
 
         // ---------- ALARM SCREEN ROUTE ----------
         composable(NavRoute.ALARM) {
+
+            val email = authController.currentUser?.getEmail() ?: ""
+            LaunchedEffect(email) {
+                groupController.refreshGroupsFor(email)
+            }
+
+            val joinedGroupIds = groupController.groupsForCurrentUser
+                .map { it.getGroupId() }
+
+            LaunchedEffect(joinedGroupIds) {
+                alarmController.refresh(joinedGroupIds)
+            }
+
+            val alarmTiles = alarmController.alarmList.map { it.toAlarmSmall() }
+
             AlarmScreen(
                 alarms = alarmTiles,
                 onClickHome = {
                     navController.navigate(NavRoute.HOME) {
                         launchSingleTop = true
-                        // popUpTo bikin kita "balik" tanpa numpuk layar terus
                         popUpTo(NavRoute.HOME) { inclusive = false }
                     }
                 },
-                onClickAlarm = {
-                    // sudah di ALARM
-                },
+                onClickAlarm = { /* already here */ },
                 onClickAdd = {
                     navController.navigate(NavRoute.ADD) {
                         launchSingleTop = true
@@ -241,7 +270,12 @@ fun AppNavHost() {
                     }
                 },
                 onClickDelete = {
-                    navController.navigate(NavRoute.ALARM_DELETE){
+                    navController.navigate(NavRoute.ALARM_DELETE) {
+                        launchSingleTop = true
+                    }
+                },
+                onAlarmClick = { alarmId ->
+                    navController.navigate(NavRoute.editAlarmRoute(alarmId)) {
                         launchSingleTop = true
                     }
                 }
@@ -249,14 +283,75 @@ fun AppNavHost() {
         }
 
         composable(NavRoute.ADD) {
+
+            // ambil user login
+            val email = authController.currentUser?.getEmail() ?: ""
+
+            // refresh groups user ini dulu
+            LaunchedEffect(email) {
+                groupController.refreshGroupsFor(email)
+            }
+
+            // buat daftar pilihan dropdown (Personal + group)
+            val groupChoices: List<SelectableGroupOption> = run {
+                val personal = listOf(
+                    SelectableGroupOption(
+                        label = "Personal",
+                        ownerType = "personal",
+                        groupId = null,
+                        groupName = null
+                    )
+                )
+
+                val fromGroups = groupController.groupsForCurrentUser.map { g ->
+                    SelectableGroupOption(
+                        label = g.getGroupName(),   // ex: "GRUP 1"
+                        ownerType = "group",
+                        groupId = g.getGroupId(),
+                        groupName = g.getGroupName()
+                    )
+                }
+
+                personal + fromGroups
+            }
+
             AddAlarmScreen(
+                groupChoices = groupChoices,
                 onBack = { navController.popBackStack() },
                 onSave = { form ->
-                    // TODO: simpan ke database / ViewModel
-                    navController.popBackStack() // balik setelah save
+
+                    // form.selectedTarget berisi info ownerType/groupId/groupName
+                    val target = form.selectedTarget
+
+                    // bikin alarm baru di repo
+                    alarmController.createAlarm(
+                        title = form.title,
+                        hour = form.hour,
+                        minute = form.minute,
+                        repeatDays = form.days,
+                        ownerType = target.ownerType,
+                        groupId = target.groupId,
+                        groupName = target.groupName,
+                        onSuccess = {
+
+                            // habis bikin, refresh alarm visible buat user ini
+                            val joinedGroupIdsAfter = groupController.groupsForCurrentUser
+                                .map { it.getGroupId() }
+
+                            alarmController.refresh(joinedGroupIdsAfter)
+
+                            // balik ke ALARM list
+                            navController.navigate(NavRoute.ALARM) {
+                                popUpTo(NavRoute.ALARM) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
                 }
             )
         }
+
+
 
         composable(NavRoute.PROFILE) {
             val username = authController.currentUser?.getUsername()
@@ -338,10 +433,27 @@ fun AppNavHost() {
 
 
         composable(NavRoute.ALARM_DELETE) {
+
+            val email = authController.currentUser?.getEmail() ?: ""
+            // pastikan group dan alarm up to date
+            LaunchedEffect(email) {
+                groupController.refreshGroupsFor(email)
+            }
+
+            val joinedGroupIds = groupController.groupsForCurrentUser
+                .map { it.getGroupId() }
+
+            LaunchedEffect(joinedGroupIds) {
+                alarmController.refresh(joinedGroupIds)
+            }
+
+            // map controller → UI kecil grid
+            val alarmTilesForDelete = alarmController.alarmList.map { it.toAlarmSmall() }
+
             AlarmDeleteScreen(
-                alarms = alarmTiles, // sama data dummy List<AlarmSmall>
+                alarms = alarmTilesForDelete,
                 onBack = {
-                    navController.popBackStack() // balik ke Alarm normal
+                    navController.popBackStack()
                 },
                 onClickHome = {
                     navController.navigate(NavRoute.HOME) {
@@ -356,17 +468,112 @@ fun AppNavHost() {
                     }
                 },
                 onClickAdd = {
-                    // nanti: tambah alarm
+                    navController.navigate(NavRoute.ADD) {
+                        launchSingleTop = true
+                    }
                 },
                 onClickGroup = {
-                    // nanti group
+                    navController.navigate(NavRoute.GROUP) {
+                        launchSingleTop = true
+                    }
                 },
                 onClickProfile = {
-                    // nanti profile
+                    navController.navigate(NavRoute.PROFILE) {
+                        launchSingleTop = true
+                    }
                 },
                 onDeleteSelected = { selectedIds ->
-                    // TODO: hapus alarm dengan id di selectedIds
-                    // lalu setelah delete selesai, mungkin popBackStack()
+
+                    // jalankan delete di controller
+                    alarmController.deleteAlarms(
+                        ids = selectedIds,
+                        joinedGroupIdsAfterDelete = joinedGroupIds,
+                        onSuccess = {
+                            // setelah sukses hapus, langsung ke halaman Alarm list
+                            navController.navigate(NavRoute.ALARM) {
+                                popUpTo(NavRoute.ALARM) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                }
+            )
+        }
+
+
+        composable(
+            route = NavRoute.EDIT_ALARM,
+            arguments = listOf(
+                navArgument("alarmId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+
+            val alarmIdArg = backStackEntry.arguments?.getInt("alarmId") ?: -1
+
+            // 1. ambil data alarm existing dari controller / repo
+            val alarmToEdit = alarmController.getAlarmById(alarmIdArg)
+
+            // fallback kalau gak ketemu
+            if (alarmToEdit == null) {
+                // optionally langsung popBackStack atau tampilkan error sederhana
+                // untuk sekarang: cukup balik
+                LaunchedEffect(Unit) {
+                    navController.popBackStack()
+                }
+                return@composable
+            }
+
+            // 2. siapkan list pilihan group (sama seperti AddAlarmScreen)
+            val groupChoices: List<SelectableGroupOption> = buildList {
+                add(
+                    SelectableGroupOption(
+                        label = "Personal",
+                        ownerType = "personal",
+                        groupId = null,
+                        groupName = null
+                    )
+                )
+                groupController.groupsForCurrentUser.forEach { g ->
+                    add(
+                        SelectableGroupOption(
+                            label = g.getGroupName(),
+                            ownerType = "group",
+                            groupId = g.getGroupId(),
+                            groupName = g.getGroupName()
+                        )
+                    )
+                }
+            }
+
+            EditAlarmScreen(
+                alarm = alarmToEdit,
+                groupChoices = groupChoices,
+                onBack = { navController.popBackStack() },
+                onSaveChanges = { editedForm ->
+
+                    // update alarm di controller
+                    alarmController.updateAlarm(
+                        id = alarmIdArg,
+                        title = editedForm.title,
+                        days = editedForm.days,
+                        hour = editedForm.hour,
+                        minute = editedForm.minute,
+                        ownerType = editedForm.selectedTarget.ownerType,
+                        groupId = editedForm.selectedTarget.groupId,
+                        groupName = editedForm.selectedTarget.groupName,
+                        onSuccess = {
+                            // refresh list alarm yang kelihatan oleh user
+                            val joinedGroupIdsAfter = groupController.groupsForCurrentUser
+                                .map { it.getGroupId() }
+                            alarmController.refresh(joinedGroupIdsAfter)
+
+                            // balik ke halaman alarm
+                            navController.navigate(NavRoute.ALARM) {
+                                popUpTo(NavRoute.ALARM) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
                 }
             )
         }

@@ -1,6 +1,7 @@
 package com.example.myremind.ui.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,15 +24,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
+import com.example.myremind.model.AddAlarmForm
+import com.example.myremind.model.SelectableGroupOption
+import com.example.myremind.model.EditableAlarmData
+
 
 // ---------- DATA UNTUK ALARM SCREEN GRID ----------
 data class AlarmSmall(
-    val label: String,        // "Work"
-    val time: String,         // "8:30"
-    val ampm: String,         // "AM"
-    val days: List<DayInfo>,  // pakai DayInfo yg sama dgn Home
+    val id: Int,
+    val label: String,
+    val time: String,
+    val ampm: String,
+    val days: List<DayInfo>,
     val enabled: Boolean
 )
+
+
 
 // ---------- ALARM SCREEN ----------
 @Composable
@@ -42,7 +50,8 @@ fun AlarmScreen(
     onClickAdd: () -> Unit,
     onClickGroup: () -> Unit,
     onClickProfile: () -> Unit,
-    onClickDelete: () -> Unit
+    onClickDelete: () -> Unit,
+    onAlarmClick: (Int) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -99,8 +108,11 @@ fun AlarmScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(alarms) { alarm ->
-                    AlarmGridCard(alarm)
+                items(alarms, key = { it.id }) { alarm ->
+                    AlarmGridCard(
+                        alarm = alarm,
+                        onClick = { onAlarmClick(alarm.id) }
+                    )
                 }
             }
         }
@@ -123,6 +135,7 @@ fun AlarmScreen(
 @Composable
 fun AlarmGridCard(
     alarm: AlarmSmall,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -131,6 +144,7 @@ fun AlarmGridCard(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier
@@ -177,7 +191,7 @@ fun AlarmGridCard(
             // switch on/off (kuning kalau aktif)
             AlarmToggle(
                 checked = alarm.enabled,
-                onCheckedChange = { /* nanti hubungkan state */ }
+                onCheckedChange = { /* panggil controller.setEnabled(...) nanti */ }
             )
         }
     }
