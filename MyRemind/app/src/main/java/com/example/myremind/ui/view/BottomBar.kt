@@ -23,17 +23,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// --- warna global (pakai sama di semua screen)
+
 val ScreenBlack = Color(0xFF000000)
 val CardDark = Color(0xFF333445)
 val TextWhite = Color(0xFFFFFFFF)
 val TextSoft = Color(0xFFDBDBDB)
 val AccentYellow = Color(0xFFE8F245)
 
-// warna khusus bottom bar
+
 private val BottomBarBg = CardDark
 
-// Tab yang aktif
+
 enum class BottomTab { HOME, ALARM, GROUP, PROFILE }
 
 @Composable
@@ -51,7 +51,7 @@ fun BottomBarWithFabSelectable(
             .fillMaxWidth()
             .height(110.dp)
     ) {
-        // Area bar bawah
+        
         Surface(
             color = BottomBarBg,
             shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp),
@@ -82,7 +82,7 @@ fun BottomBarWithFabSelectable(
                     onClick = onClickAlarm
                 )
 
-                Spacer(modifier = Modifier.width(64.dp)) // ruang FAB tengah
+                Spacer(modifier = Modifier.width(64.dp)) 
 
                 BottomNavItemSelectable(
                     icon = Icons.Default.Group,
@@ -100,7 +100,7 @@ fun BottomBarWithFabSelectable(
             }
         }
 
-        // FAB bulat kuning mengambang di tengah
+        
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)

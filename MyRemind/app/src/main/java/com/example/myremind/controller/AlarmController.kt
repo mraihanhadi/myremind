@@ -86,7 +86,7 @@ class AlarmController(
         )
     }
 
-    fun updateAlarm(
+    fun EditDetailAlarm(
         id: Int,
         title: String,
         days: List<Boolean>,
@@ -97,7 +97,6 @@ class AlarmController(
         groupName: String?,
         onSuccess: () -> Unit
     ) {
-        // validasi kecil
         if (title.isBlank()) {
             lastError = "Title can't be empty"
             return
@@ -142,7 +141,6 @@ class AlarmController(
             return
         }
 
-        // refresh list visible untuk user saat ini
         refresh(joinedGroupIdsAfterDelete)
 
         onSuccess()

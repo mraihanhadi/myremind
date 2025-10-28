@@ -111,7 +111,7 @@ fun LoginVerificationScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                // Error message kalau ada
+                
                 if (errorMessage != null) {
                     Text(
                         text = errorMessage,
@@ -130,7 +130,7 @@ fun LoginVerificationScreen(
 
                 Spacer(Modifier.height(8.dp))
 
-                // Resend
+                
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.CenterStart
@@ -152,7 +152,7 @@ fun LoginVerificationScreen(
 
                 Spacer(Modifier.height(24.dp))
 
-                // Tombol Verify (rata kanan)
+                
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.CenterEnd

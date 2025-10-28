@@ -2,7 +2,6 @@ package com.example.myremind.model
 
 import java.util.Calendar
 
-// contoh minimal
 class MemoryAlarmRepository {
 
     private val alarms = mutableListOf<Alarm>()
@@ -49,7 +48,6 @@ class MemoryAlarmRepository {
 
         val old = alarms[idx]
 
-        // rebuild Calendar
         val cal = (old.getTimeCal().clone() as Calendar).apply {
             if (newHour != null) {
                 set(Calendar.HOUR_OF_DAY, newHour)

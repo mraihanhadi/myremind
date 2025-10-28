@@ -19,8 +19,8 @@ import com.example.myremind.ui.mapper.*
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
-    val authRepo = remember { MemoryAuthRepository() }
-    val authController = remember { AuthController(authRepo) }
+    val authRepo = remember { MemoryUserRepository() }
+    val userController = remember { UserController(authRepo) }
     val groupRepository = remember { MemoryGroupRepository() }
     val groupController = remember { GroupController(groupRepository) }
     var refreshFlag by remember { mutableStateOf(0) }
@@ -28,7 +28,7 @@ fun AppNavHost() {
     val alarmController = remember { AlarmController(alarmRepo) }
     val userGroupNames = groupController.groupsForCurrentUser.map { it.getGroupName() }
     fun refreshUI() { refreshFlag++ }
-    // ------ Dummy data untuk ditampilkan di screen ------
+
     val days = listOf(
         DayInfo("S", true),
         DayInfo("M", true),
@@ -60,7 +60,6 @@ fun AppNavHost() {
         )
     }
 
-    // ------ NavHost utama ------
     NavHost(
         navController = navController,
         startDestination = NavRoute.SIGNIN
@@ -71,7 +70,7 @@ fun AppNavHost() {
 
             LoginScreen(
                 onSignIn = { identifier, password ->
-                    authController.signIn(
+                    userController.signIn(
                         identifier = identifier,
                         password = password,
                         onSuccess = {
@@ -89,10 +88,10 @@ fun AppNavHost() {
                 onResetPassword = {
                     navController.navigate(route = NavRoute.VERIFY)
                 },
-                loading = authController.loading,
-                errorMessage = authController.lastError,
+                loading = userController.loading,
+                errorMessage = userController.lastError,
                 onDismissError = {
-                    authController.clearError()
+                    userController.clearError()
                     refreshUI()
                 }
             )
@@ -110,7 +109,7 @@ fun AppNavHost() {
                 },
 
                 onSubmitSignUp = { username, email, pass, verify ->
-                    authController.signUp(
+                    userController.signUp(
                         username = username,
                         email = email,
                         password = pass,
@@ -123,10 +122,10 @@ fun AppNavHost() {
                         }
                     )
                 },
-                loading = authController.loading,
-                errorMessage = authController.lastError,
+                loading = userController.loading,
+                errorMessage = userController.lastError,
                 onDismissError = {
-                    authController.clearError()
+                    userController.clearError()
                     refreshUI()
                 }
             )
@@ -134,12 +133,11 @@ fun AppNavHost() {
 
         composable(NavRoute.VERIFY) {
             LoginVerificationScreen(
-                loading = authController.loading,
-                errorMessage = authController.lastError,
-                onDismissError = { authController.clearError() },
-                onResend = { /* optional, bisa kosong */ },
+                loading = userController.loading,
+                errorMessage = userController.lastError,
+                onDismissError = { userController.clearError() },
+                onResend = {  },
                 onVerify = { identifier ->
-                    // langsung navigate ke CHANGE_PASSWORD sambil bawa email/username itu
                     navController.navigate(
                         "change_password/${identifier}"
                     ) {
@@ -159,15 +157,14 @@ fun AppNavHost() {
             val emailArg = backStackEntry.arguments?.getString("emailArg") ?: ""
 
             ChangePasswordScreen(
-                loading = authController.loading,
-                errorMessage = authController.lastError,
-                onDismissError = { authController.clearError() },
+                loading = userController.loading,
+                errorMessage = userController.lastError,
+                onDismissError = { userController.clearError() },
                 onSubmit = { newPassword ->
-                    authController.resetPassword(
+                    userController.resetPassword(
                         email = emailArg,
                         newPassword = newPassword,
                         onDone = {
-                            // setelah password diganti, balik ke LOGIN
                             navController.navigate(NavRoute.SIGNIN) {
                                 popUpTo(NavRoute.SIGNIN) { inclusive = true }
                                 launchSingleTop = true
@@ -178,30 +175,20 @@ fun AppNavHost() {
             )
         }
 
-        // ---------- HOME SCREEN ROUTE ----------
         composable(NavRoute.HOME) {
-
-            // pastikan membership group user aktual
-            val email = authController.currentUser?.getEmail() ?: ""
-            // (kalau belum dipanggil sebelumnya, panggil di sini)
+            val email = userController.currentUser?.getEmail() ?: ""
             LaunchedEffect(email) {
                 groupController.refreshGroupsFor(email)
             }
-
-            // list groupId yg user join
             val joinedGroupIds = groupController.groupsForCurrentUser
                 .map { it.getGroupId() }
-
-            // refresh alarm yg visible buat user ini
             LaunchedEffect(joinedGroupIds) {
                 alarmController.refresh(joinedGroupIds)
             }
-
-            // map alarm → UI model buat HOME
             val homeAlarms = alarmController.alarmList.map { it.toAlarmEntry() }
 
             HomeScreen(
-                username = authController.currentUser?.getUsername() ?: "User",
+                username = userController.currentUser?.getUsername() ?: "User",
                 alarms = homeAlarms,
                 onClickHome = {  },
                 onClickAlarm = {
@@ -228,10 +215,9 @@ fun AppNavHost() {
             )
         }
 
-        // ---------- ALARM SCREEN ROUTE ----------
         composable(NavRoute.ALARM) {
 
-            val email = authController.currentUser?.getEmail() ?: ""
+            val email = userController.currentUser?.getEmail() ?: ""
             LaunchedEffect(email) {
                 groupController.refreshGroupsFor(email)
             }
@@ -253,7 +239,7 @@ fun AppNavHost() {
                         popUpTo(NavRoute.HOME) { inclusive = false }
                     }
                 },
-                onClickAlarm = { /* already here */ },
+                onClickAlarm = {  },
                 onClickAdd = {
                     navController.navigate(NavRoute.ADD) {
                         launchSingleTop = true
@@ -284,15 +270,12 @@ fun AppNavHost() {
 
         composable(NavRoute.ADD) {
 
-            // ambil user login
-            val email = authController.currentUser?.getEmail() ?: ""
+            val email = userController.currentUser?.getEmail() ?: ""
 
-            // refresh groups user ini dulu
             LaunchedEffect(email) {
                 groupController.refreshGroupsFor(email)
             }
 
-            // buat daftar pilihan dropdown (Personal + group)
             val groupChoices: List<SelectableGroupOption> = run {
                 val personal = listOf(
                     SelectableGroupOption(
@@ -305,7 +288,7 @@ fun AppNavHost() {
 
                 val fromGroups = groupController.groupsForCurrentUser.map { g ->
                     SelectableGroupOption(
-                        label = g.getGroupName(),   // ex: "GRUP 1"
+                        label = g.getGroupName(),
                         ownerType = "group",
                         groupId = g.getGroupId(),
                         groupName = g.getGroupName()
@@ -320,10 +303,8 @@ fun AppNavHost() {
                 onBack = { navController.popBackStack() },
                 onSave = { form ->
 
-                    // form.selectedTarget berisi info ownerType/groupId/groupName
                     val target = form.selectedTarget
 
-                    // bikin alarm baru di repo
                     alarmController.createAlarm(
                         title = form.title,
                         hour = form.hour,
@@ -334,13 +315,11 @@ fun AppNavHost() {
                         groupName = target.groupName,
                         onSuccess = {
 
-                            // habis bikin, refresh alarm visible buat user ini
                             val joinedGroupIdsAfter = groupController.groupsForCurrentUser
                                 .map { it.getGroupId() }
 
                             alarmController.refresh(joinedGroupIdsAfter)
 
-                            // balik ke ALARM list
                             navController.navigate(NavRoute.ALARM) {
                                 popUpTo(NavRoute.ALARM) { inclusive = true }
                                 launchSingleTop = true
@@ -354,8 +333,8 @@ fun AppNavHost() {
 
 
         composable(NavRoute.PROFILE) {
-            val username = authController.currentUser?.getUsername()
-            val currentEmail = authController.currentUser?.getEmail()
+            val username = userController.currentUser?.getUsername()
+            val currentEmail = userController.currentUser?.getEmail()
             ProfileScreen(
                 username = username.toString(),
                 email = currentEmail.toString(),
@@ -382,7 +361,6 @@ fun AppNavHost() {
                     }
                 },
                 onClickProfile = {
-                    // udah di Profile
                 },
                 onSignOut = {
                     navController.navigate(NavRoute.SIGNIN) {
@@ -393,7 +371,7 @@ fun AppNavHost() {
         }
 
         composable(NavRoute.GROUP) {
-            val currentEmail = authController.currentUser?.getEmail() ?:""
+            val currentEmail = userController.currentUser?.getEmail() ?:""
             LaunchedEffect(currentEmail) {
                 if (currentEmail.isNotBlank()) {
                     groupController.refreshGroupsFor(currentEmail)
@@ -421,7 +399,7 @@ fun AppNavHost() {
                         launchSingleTop = true
                     }
                 },
-                onClickGroup = { /* stay */ },
+                onClickGroup = {  },
                 onClickProfile = {
                     navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
                 },
@@ -434,8 +412,7 @@ fun AppNavHost() {
 
         composable(NavRoute.ALARM_DELETE) {
 
-            val email = authController.currentUser?.getEmail() ?: ""
-            // pastikan group dan alarm up to date
+            val email = userController.currentUser?.getEmail() ?: ""
             LaunchedEffect(email) {
                 groupController.refreshGroupsFor(email)
             }
@@ -447,7 +424,6 @@ fun AppNavHost() {
                 alarmController.refresh(joinedGroupIds)
             }
 
-            // map controller → UI kecil grid
             val alarmTilesForDelete = alarmController.alarmList.map { it.toAlarmSmall() }
 
             AlarmDeleteScreen(
@@ -483,13 +459,10 @@ fun AppNavHost() {
                     }
                 },
                 onDeleteSelected = { selectedIds ->
-
-                    // jalankan delete di controller
                     alarmController.deleteAlarms(
                         ids = selectedIds,
                         joinedGroupIdsAfterDelete = joinedGroupIds,
                         onSuccess = {
-                            // setelah sukses hapus, langsung ke halaman Alarm list
                             navController.navigate(NavRoute.ALARM) {
                                 popUpTo(NavRoute.ALARM) { inclusive = true }
                                 launchSingleTop = true
@@ -509,21 +482,13 @@ fun AppNavHost() {
         ) { backStackEntry ->
 
             val alarmIdArg = backStackEntry.arguments?.getInt("alarmId") ?: -1
-
-            // 1. ambil data alarm existing dari controller / repo
             val alarmToEdit = alarmController.getAlarmById(alarmIdArg)
-
-            // fallback kalau gak ketemu
             if (alarmToEdit == null) {
-                // optionally langsung popBackStack atau tampilkan error sederhana
-                // untuk sekarang: cukup balik
                 LaunchedEffect(Unit) {
                     navController.popBackStack()
                 }
                 return@composable
             }
-
-            // 2. siapkan list pilihan group (sama seperti AddAlarmScreen)
             val groupChoices: List<SelectableGroupOption> = buildList {
                 add(
                     SelectableGroupOption(
@@ -550,9 +515,7 @@ fun AppNavHost() {
                 groupChoices = groupChoices,
                 onBack = { navController.popBackStack() },
                 onSaveChanges = { editedForm ->
-
-                    // update alarm di controller
-                    alarmController.updateAlarm(
+                    alarmController.EditDetailAlarm(
                         id = alarmIdArg,
                         title = editedForm.title,
                         days = editedForm.days,
@@ -562,12 +525,9 @@ fun AppNavHost() {
                         groupId = editedForm.selectedTarget.groupId,
                         groupName = editedForm.selectedTarget.groupName,
                         onSuccess = {
-                            // refresh list alarm yang kelihatan oleh user
                             val joinedGroupIdsAfter = groupController.groupsForCurrentUser
                                 .map { it.getGroupId() }
                             alarmController.refresh(joinedGroupIdsAfter)
-
-                            // balik ke halaman alarm
                             navController.navigate(NavRoute.ALARM) {
                                 popUpTo(NavRoute.ALARM) { inclusive = true }
                                 launchSingleTop = true
@@ -610,7 +570,7 @@ fun AppNavHost() {
                 )
             }
 
-            val currentEmail = authController.currentUser?.getEmail().orEmpty()
+            val currentEmail = userController.currentUser?.getEmail().orEmpty()
 
             GroupInfoScreen(
                 group = uiDetail,
@@ -641,7 +601,7 @@ fun AppNavHost() {
         }
 
         composable(NavRoute.GROUP_CREATE) {
-            val creatorEmail = authController.currentUser?.getEmail().orEmpty()
+            val creatorEmail = userController.currentUser?.getEmail().orEmpty()
 
             GroupCreateScreen(
                 loading = false,
@@ -665,7 +625,7 @@ fun AppNavHost() {
         }
 
         composable(NavRoute.GROUP_ADD_MEMBER) {
-            val currentUserEmail = authController.currentUser?.getEmail().orEmpty()
+            val currentUserEmail = userController.currentUser?.getEmail().orEmpty()
             val currentGroup = groupController.lastCreatedGroup
                 ?: groupController.groupsForCurrentUser.lastOrNull()
 
@@ -686,7 +646,6 @@ fun AppNavHost() {
                             groupId = groupId,
                             currentUserEmail = currentUserEmail
                         ) { updatedGroup ->
-                            // Berhasil nambah member → refresh list & balik
                             groupController.refreshGroupsFor(currentUserEmail)
                             navController.popBackStack()
                         }

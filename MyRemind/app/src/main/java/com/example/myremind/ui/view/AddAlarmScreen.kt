@@ -51,17 +51,15 @@ fun AddAlarmScreen(
     onBack: () -> Unit,
     onSave: (AddAlarmForm) -> Unit,
 ) {
-    // ---------- STATE FORM ----------
     var title by remember { mutableStateOf(TextFieldValue("")) }
-    var desc by remember { mutableStateOf(TextFieldValue("")) } // kalau kamu mau pakai nanti
-    var days by remember { mutableStateOf(List(7) { false }) } // urutan S M T W T F S
+    var desc by remember { mutableStateOf(TextFieldValue("")) }
+    var days by remember { mutableStateOf(List(7) { false }) }
 
     val cal = remember { Calendar.getInstance() }
 
     var hour by remember { mutableStateOf<Int?>(null) }
     var minute by remember { mutableStateOf<Int?>(null) }
 
-    // dropdown group
     var expanded by remember { mutableStateOf(false) }
     var selectedTarget by remember {
         mutableStateOf(
@@ -74,11 +72,9 @@ fun AddAlarmScreen(
         )
     }
 
-    // picker dialog flags
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
-    // pretty text utk date & time
     val dateFmt = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val timeText = remember(hour, minute) {
         if (hour != null && minute != null) {
@@ -100,7 +96,6 @@ fun AddAlarmScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
 
-            // HEADER
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -123,7 +118,6 @@ fun AddAlarmScreen(
                 )
             }
 
-            // KARTU FORM
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -132,7 +126,6 @@ fun AddAlarmScreen(
                     .padding(20.dp)
             ) {
 
-                // JUDUL
                 AppInputPill(
                     value = title,
                     onValueChange = { title = it },
@@ -143,7 +136,6 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // pilih hari
                 DaysSelector(
                     days = days,
                     onToggle = { idx ->
@@ -155,7 +147,6 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                // PICKER TARGET (personal / salah satu grup user)
                 GroupPickerField(
                     selectedLabel = selectedTarget.label,
                     onClick = { expanded = true }
@@ -187,7 +178,6 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                // waktu
                 PillButtonField(
                     text = timeText,
                     trailing = {
@@ -202,7 +192,6 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(20.dp))
 
-                // SAVE
                 Button(
                     onClick = {
                         onSave(
@@ -232,7 +221,6 @@ fun AddAlarmScreen(
             }
         }
 
-        // ---------- TIME PICKER DIALOG ----------
         if (showTimePicker) {
             val timeState = rememberTimePickerState(
                 initialHour = hour ?: cal.get(Calendar.HOUR_OF_DAY),
@@ -265,10 +253,6 @@ fun AddAlarmScreen(
         }
     }
 }
-
-/* =========================================================
- * REUSABLE UI PIECES (sama seperti sebelumnya, tapi dirapikan)
- * ========================================================= */
 
 @Composable
 private fun AppInputPill(
@@ -339,7 +323,6 @@ private fun PillButtonField(
     }
 }
 
-// Baris hari: label "S M T W T F S" + chip toggle
 @Composable
 private fun DaysSelector(
     days: List<Boolean>,
@@ -347,7 +330,6 @@ private fun DaysSelector(
 ) {
     val labels = listOf("S","M","T","W","T","F","S")
 
-    // baris label kecil kuning
     Row(
         modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -363,7 +345,6 @@ private fun DaysSelector(
         }
     }
 
-    // baris chip toggle
     Row(
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -420,7 +401,6 @@ private fun GroupPickerField(
             fontWeight = FontWeight.SemiBold
         )
 
-        // caret ▼
         Text(
             text = "▼",
             color = Color.Black,

@@ -34,7 +34,7 @@ data class GroupItem(
 
 @Composable
 fun GroupScreen(
-    groups: List<Group>, // dari controller.groupsForCurrentUser
+    groups: List<Group>, 
     onGroupClick: (groupId: Int) -> Unit,
 
     onClickHome: () -> Unit,

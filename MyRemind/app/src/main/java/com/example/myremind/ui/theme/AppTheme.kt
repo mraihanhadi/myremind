@@ -1,4 +1,4 @@
-// AppTheme.kt
+
 package com.example.myremind.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -12,13 +12,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// --- Colors inferred from the Figma preview ---
-val BlackBg = Color(0xFF0A0A0F)       // full-screen background
-val CardBg = Color(0xFF2D2C40)        // card blocks (ungu gelap)
-val TextPrimary = Color(0xFFFFFFFF)   // putih
-val TextSecondary = Color(0xFFB7B7C8) // abu muda
-val AccentYellow = Color(0xFFF5F54A)  // tombol bulat / FAB
-val DangerRed = Color(0xFFFF2B2B)     // lingkaran stopwatch merah / delete
+
+val BlackBg = Color(0xFF0A0A0F)       
+val CardBg = Color(0xFF2D2C40)        
+val TextPrimary = Color(0xFFFFFFFF)   
+val TextSecondary = Color(0xFFB7B7C8) 
+val AccentYellow = Color(0xFFF5F54A)  
+val DangerRed = Color(0xFFFF2B2B)     
 
 private val DarkColorScheme = darkColorScheme(
     primary = AccentYellow,

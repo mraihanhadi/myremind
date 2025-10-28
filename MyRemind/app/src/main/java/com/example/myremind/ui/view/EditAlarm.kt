@@ -54,25 +54,25 @@ fun EditAlarmScreen(
     onBack: () -> Unit,
     onSaveChanges: (AddAlarmForm) -> Unit
 ) {
-    // mirip AddAlarmScreen tapi state awal = alarm.* dan label tombol beda
+    
 
-    // title
+    
     var title by remember { mutableStateOf(TextFieldValue(alarm.title)) }
 
-    // days (copy agar bisa toggle)
+    
     var days by remember { mutableStateOf(alarm.repeatDays.toMutableList()) }
 
-    // date/hours
+    
     var dateMillis by remember { mutableStateOf(alarm.dateMillis) }
     var hour by remember { mutableStateOf(alarm.hour) }
     var minute by remember { mutableStateOf(alarm.minute) }
 
-    // dropdown group
+    
     var expanded by remember { mutableStateOf(false) }
 
-    // kita pilih opsi awal berdasarkan alarm.ownerType/groupId
+    
     val initialSelectedTarget = remember {
-        // coba cari kecocokan di groupChoices
+        
         groupChoices.firstOrNull { choice ->
             if (alarm.ownerType == "personal") {
                 choice.ownerType == "personal"
@@ -91,7 +91,7 @@ fun EditAlarmScreen(
 
     var selectedTarget by remember { mutableStateOf(initialSelectedTarget) }
 
-    // date/time text same logic as AddAlarmScreen
+    
     val cal = remember { java.util.Calendar.getInstance() }
 
     val dateFmt = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()) }
@@ -107,7 +107,7 @@ fun EditAlarmScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
-    // UI layout sangat mirip AddAlarmScreen
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -118,7 +118,7 @@ fun EditAlarmScreen(
                 .fillMaxSize()
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            // HEADER
+            
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -141,7 +141,7 @@ fun EditAlarmScreen(
                 )
             }
 
-            // CARD FORM
+            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -149,7 +149,7 @@ fun EditAlarmScreen(
                     .background(CardDark)
                     .padding(20.dp)
             ) {
-                // TITLE
+                
                 AppInputPill(
                     value = title,
                     onValueChange = { title = it },
@@ -158,7 +158,7 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Repeat days
+                
                 DaysSelector(
                     days = days,
                     onToggle = { idx ->
@@ -168,7 +168,7 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                // GROUP PICKER
+                
                 GroupPickerField(
                     selected = selectedTarget.label,
                     onClick = { expanded = !expanded }
@@ -198,7 +198,7 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                // DATE PICKER
+                
                 PillButtonField(
                     text = dateText,
                     trailing = {
@@ -213,7 +213,7 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                // TIME PICKER
+                
                 PillButtonField(
                     text = timeText,
                     trailing = {
@@ -228,7 +228,7 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(20.dp))
 
-                // SAVE CHANGES BUTTON
+                
                 Button(
                     onClick = {
                         onSaveChanges(
@@ -258,7 +258,7 @@ fun EditAlarmScreen(
             }
         }
 
-        // date picker dialog
+        
         if (showDatePicker) {
             val dateState = rememberDatePickerState(
                 initialSelectedDateMillis = dateMillis
@@ -281,7 +281,7 @@ fun EditAlarmScreen(
             }
         }
 
-        // time picker dialog
+        
         if (showTimePicker) {
             val timeState = rememberTimePickerState(
                 initialHour = hour ?: cal.get(Calendar.HOUR_OF_DAY),
@@ -382,7 +382,7 @@ private fun PillButtonField(
     }
 }
 
-// Baris hari: label "S M T W T F S" + chip toggle
+
 @Composable
 private fun DaysSelector(
     days: List<Boolean>,
@@ -390,7 +390,7 @@ private fun DaysSelector(
 ) {
     val labels = listOf("S","M","T","W","T","F","S")
 
-    // baris label kecil kuning
+    
     Row(
         modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -406,7 +406,7 @@ private fun DaysSelector(
         }
     }
 
-    // baris chip toggle
+    
     Row(
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {

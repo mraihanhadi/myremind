@@ -1,6 +1,6 @@
 package com.example.myremind.model
 
-class MemoryAuthRepository : AuthRepository {
+class MemoryUserRepository : UserRepository {
 
     private val users = mutableListOf(
         User(email = "abc@example.com", username = "abc", password = "123"),

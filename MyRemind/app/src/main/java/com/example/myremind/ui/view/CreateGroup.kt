@@ -56,7 +56,7 @@ fun GroupCreateScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Header <- Group
+            
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -86,7 +86,7 @@ fun GroupCreateScreen(
 
             Spacer(Modifier.height(64.dp))
 
-            // Input Nama Group
+            
             TextField(
                 value = groupName,
                 onValueChange = { groupName = it },
@@ -116,7 +116,7 @@ fun GroupCreateScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Input Deskripsi (opsional)
+            
             TextField(
                 value = description,
                 onValueChange = { description = it },
@@ -145,7 +145,7 @@ fun GroupCreateScreen(
 
             Spacer(Modifier.weight(1f))
 
-            // Button "Create  +"
+            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -192,7 +192,7 @@ fun GroupCreateScreen(
             }
         }
 
-        // Error message overlay di bawah header kalau mau
+        
         if (errorMessage != null) {
             Box(
                 modifier = Modifier

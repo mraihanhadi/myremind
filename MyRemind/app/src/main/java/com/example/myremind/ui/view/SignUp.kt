@@ -58,7 +58,7 @@ fun SignUpScreen(
         ) {
             Spacer(Modifier.height(48.dp))
 
-            // Title
+            
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -73,7 +73,7 @@ fun SignUpScreen(
 
             Spacer(Modifier.height(64.dp))
 
-            // Fields
+            
             SignUpTextField(username, { username = it }, "Username", false)
             Spacer(Modifier.height(24.dp))
             SignUpTextField(email, { email = it }, "Email", false)
@@ -84,7 +84,7 @@ fun SignUpScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Error message (kalau ada)
+            
             if (errorMessage != null) {
                 Text(
                     text = errorMessage,
@@ -103,7 +103,7 @@ fun SignUpScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            // Sign Up button kanan
+            
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.CenterEnd
@@ -126,7 +126,7 @@ fun SignUpScreen(
 
             Spacer(Modifier.weight(1f))
 
-            // "Already have an account? Sign In"
+            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

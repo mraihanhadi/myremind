@@ -26,14 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.remember
 
-// NOTE: kita pakai ScreenBlack, AccentYellow, TextWhite dari project kamu.
-// Pastikan variabel warna global itu accessible (misal dari BottomBar.kt).
-// Kalau file ini beda module / beda package dan warnanya ga keimport,
-// kamu bisa copy fallback ini:
-//
-// val ScreenBlack = Color(0xFF000000)
-// val AccentYellow = Color(0xFFE8F245)
-// val TextWhite = Color(0xFFFFFFFF)
+
+
+
+
+
+
+
+
 
 @Composable
 fun GroupAddMemberScreen(
@@ -126,10 +126,10 @@ fun GroupAddMemberScreen(
                 )
             }
 
-            // Spacer fleksibel, dorong tombol ke bawah
+            
             Spacer(modifier = Modifier.weight(1f))
 
-            // ===== BUTTON "Add  +" DI BAWAH =====
+            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -140,7 +140,7 @@ fun GroupAddMemberScreen(
                     enabled = query.text.isNotBlank(),
                     onClick = {
                         onAddMember(query.text.trim())
-                        // opsional: reset field setelah ditambah
+                        
                         query = TextFieldValue("")
                     }
                 )
@@ -192,7 +192,7 @@ fun AddMemberButton(
     }
 }
 
-// Klik tanpa ripple biar matching figma style
+
 @Composable
 private fun Modifier.clickableNoRipple(
     enabled: Boolean = true,

@@ -1,4 +1,3 @@
-// file: model/Alarm.kt
 package com.example.myremind.model
 
 import java.util.Calendar
@@ -7,9 +6,9 @@ data class Alarm(
     private val alarm_Id: Int,
     private val alarm_Name: String,
     private val timeCal: Calendar,
-    private val repeatDays: List<Boolean>, // 7 hari
-    private val ownerType: String,         // "personal"/"group"
-    private val groupId: Int?,             // null kalau personal
+    private val repeatDays: List<Boolean>,
+    private val ownerType: String,
+    private val groupId: Int?,
     private val groupName: String?
 ) {
     fun getAlarmId(): Int = alarm_Id
@@ -20,7 +19,6 @@ data class Alarm(
     fun getGroupId(): Int? = groupId
     fun getGroupName(): String? = groupName
 
-    // helper buat update
     fun copyInternal(
         alarmName: String = alarm_Name,
         timeCal: Calendar = this.timeCal,

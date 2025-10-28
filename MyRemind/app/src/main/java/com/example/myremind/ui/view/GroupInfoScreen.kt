@@ -25,7 +25,7 @@ private val CircleRed = Color(0xFFFF2B2B)
 
 data class GroupMember(
     val name: String,
-    val role: String? = null       // "Admin" atau null
+    val role: String? = null       
 )
 
 data class GroupDetail(
@@ -54,7 +54,7 @@ fun GroupInfoScreen(
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 24.dp)
         ) {
-            // Header
+            
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -78,7 +78,7 @@ fun GroupInfoScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            // Avatar bulat + nama di tengah
+            
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -100,7 +100,7 @@ fun GroupInfoScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Description
+            
             Text(
                 text = "Description",
                 color = TextWhite,
@@ -116,7 +116,7 @@ fun GroupInfoScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Group Member
+            
             Text(
                 text = "Group Member",
                 color = TextWhite,
@@ -137,7 +137,7 @@ fun GroupInfoScreen(
                 )
             }
 
-            // Add Member (pill putih)
+            
             PillButtonWhite(
                 text = "Add Member",
                 modifier = Modifier.padding(top = 4.dp),
@@ -146,7 +146,7 @@ fun GroupInfoScreen(
 
             Spacer(Modifier.weight(1f))
 
-            // Leave Group (teks merah di atas pill putih)
+            
             Surface(
                 color = Color.White,
                 shape = RoundedCornerShape(24.dp),
@@ -221,7 +221,7 @@ private fun PillButtonWhite(
         color = Color.White,
         shape = RoundedCornerShape(18.dp),
         modifier = modifier
-            .fillMaxWidth(0.55f) // sedikit lebih pendek, sesuai mockup
+            .fillMaxWidth(0.55f) 
             .height(44.dp)
             .clip(RoundedCornerShape(18.dp))
             .clickable { onClick() }

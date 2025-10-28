@@ -3,11 +3,11 @@ package com.example.myremind.controller
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.myremind.model.AuthRepository
+import com.example.myremind.model.UserRepository
 import com.example.myremind.model.User
 
-class AuthController(
-    private val repo: AuthRepository
+class UserController(
+    private val repo: UserRepository
 ) {
     var currentUser by mutableStateOf<User?>(repo.getCurrentUser())
         private set

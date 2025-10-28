@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.interaction.MutableInteractionSource
 
 
-// warna tambahan khusus avatar bg (ungu muda)
+
 private val AvatarBg = Color(0xFFE9E1FF)
 
 @Composable
@@ -46,10 +46,10 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 110.dp) // buat ruang bottom bar
+                .padding(bottom = 110.dp) 
         ) {
 
-            // === Header "Profile" ===
+            
             Text(
                 text = "Profile",
                 color = TextWhite,
@@ -60,14 +60,14 @@ fun ProfileScreen(
                     .padding(start = 24.dp, top = 32.dp, bottom = 24.dp)
             )
 
-            // === Avatar + Username + edit ===
+            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                // Avatar
+                
                 Box(
                     modifier = Modifier
                         .size(140.dp)
@@ -85,7 +85,7 @@ fun ProfileScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Username row + edit icon kuning
+                
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -103,14 +103,14 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // === Email Row (icon amplop kuning + bubble email + edit) ===
+            
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // icon email kotak kuning
+                
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
@@ -129,7 +129,7 @@ fun ProfileScreen(
 
                 Spacer(Modifier.width(16.dp))
 
-                // bubble email gelap + edit kuning kanan
+                
                 Surface(
                     color = CardDark,
                     shape = RoundedCornerShape(20.dp),
@@ -157,7 +157,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(40.dp))
 
-            // === Sign Out button kuning ===
+            
             Box(
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
@@ -181,7 +181,7 @@ fun ProfileScreen(
             }
         }
 
-        // === Bottom bar (tab Profile aktif) ===
+        
         BottomBarWithFabSelectable(
             modifier = Modifier.align(Alignment.BottomCenter),
             selectedTab = BottomTab.PROFILE,
@@ -194,8 +194,8 @@ fun ProfileScreen(
     }
 }
 
-// ==== Komponen kecil: badge edit kuning (kotak kecil rounded, border kuning + icon pensil) ====
-// Sementara: pakai Icons.Default.Edit warna AccentYellow
+
+
 @Composable
 fun EditBadge(
     onClick: () -> Unit
@@ -227,7 +227,7 @@ fun EditBadge(
     }
 }
 
-// ==== Extension helper: border kuning untuk email icon box ====
+
 @Composable
 private fun Modifier.borderWithAccent(): Modifier {
     return this.then(
@@ -240,7 +240,7 @@ private fun Modifier.borderWithAccent(): Modifier {
     )
 }
 
-// ==== Extension helper: clickable tanpa ripple (biar mirip desain statis Figma) ====
+
 
 private fun Modifier.clickableNoRipple(onClick: () -> Unit): Modifier = composed {
     clickable(

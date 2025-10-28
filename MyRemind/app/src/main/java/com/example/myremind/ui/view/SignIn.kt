@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// kamu udah pake warna hitam/putih consistent, jadi kita define lagi lokal
+
 
 
 private val FieldBg = Color(0xFFFFFFFF)
@@ -45,7 +45,7 @@ fun LoginScreen(
     errorMessage: String?,
     onDismissError: () -> Unit,
 ) {
-    var identifier by remember { mutableStateOf(TextFieldValue("")) } // username atau email
+    var identifier by remember { mutableStateOf(TextFieldValue("")) } 
     var password by remember { mutableStateOf(TextFieldValue("")) }
 
     Box(
@@ -61,7 +61,7 @@ fun LoginScreen(
         ) {
             Spacer(Modifier.height(48.dp))
 
-            // App Title
+            
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -76,7 +76,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(64.dp))
 
-            // Username / Email input
+            
             AuthTextField(
                 value = identifier,
                 onValueChange = { identifier = it },
@@ -86,7 +86,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Password input
+            
             AuthTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -107,7 +107,7 @@ fun LoginScreen(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
-                            // biar bisa tap untuk clear error
+                            
                             onDismissError()
                         }
                 )
@@ -115,7 +115,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(4.dp))
 
-            // Reset Password link
+            
             Text(
                 text = "Reset Password",
                 color = TextWhite,
@@ -131,7 +131,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Sign In button
+            
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.CenterEnd
@@ -149,7 +149,7 @@ fun LoginScreen(
 
             Spacer(Modifier.weight(1f))
 
-            // Sign Up section bawah
+            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -28,8 +28,6 @@ import com.example.myremind.model.AddAlarmForm
 import com.example.myremind.model.SelectableGroupOption
 import com.example.myremind.model.EditableAlarmData
 
-
-// ---------- DATA UNTUK ALARM SCREEN GRID ----------
 data class AlarmSmall(
     val id: Int,
     val label: String,
@@ -39,9 +37,6 @@ data class AlarmSmall(
     val enabled: Boolean
 )
 
-
-
-// ---------- ALARM SCREEN ----------
 @Composable
 fun AlarmScreen(
     alarms: List<AlarmSmall>,
@@ -64,7 +59,6 @@ fun AlarmScreen(
                 .fillMaxSize()
                 .padding(bottom = 110.dp)
         ) {
-            // Header "Alarm" + icon edit
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -98,7 +92,7 @@ fun AlarmScreen(
                 }
             }
 
-            // Grid 2 kolom
+
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier
@@ -117,7 +111,7 @@ fun AlarmScreen(
             }
         }
 
-        // Bottom bar dengan tab Alarm aktif
+
         BottomBarWithFabSelectable(
             modifier = Modifier
                 .align(Alignment.BottomCenter),
@@ -131,7 +125,7 @@ fun AlarmScreen(
     }
 }
 
-// ---------- KARTU ALARM KECIL (kotak grid) ----------
+
 @Composable
 fun AlarmGridCard(
     alarm: AlarmSmall,
@@ -150,7 +144,7 @@ fun AlarmGridCard(
             modifier = Modifier
                 .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
-            // "Work"
+
             Text(
                 text = alarm.label,
                 color = TextSoft,
@@ -160,7 +154,7 @@ fun AlarmGridCard(
 
             Spacer(Modifier.height(16.dp))
 
-            // jam besar + AM
+
             Row(
                 verticalAlignment = Alignment.Bottom
             ) {
@@ -183,25 +177,25 @@ fun AlarmGridCard(
 
             Spacer(Modifier.height(16.dp))
 
-            // hari
+
             DaysRowSmall(days = alarm.days)
 
             Spacer(Modifier.height(16.dp))
 
-            // switch on/off (kuning kalau aktif)
+
             AlarmToggle(
                 checked = alarm.enabled,
-                onCheckedChange = { /* panggil controller.setEnabled(...) nanti */ }
+                onCheckedChange = {  }
             )
         }
     }
 }
 
-// ---------- ROW HARI VERSI KARTU KECIL ----------
+
 @Composable
 fun DaysRowSmall(days: List<DayInfo>) {
     Column {
-        // titik di atas
+
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -224,7 +218,7 @@ fun DaysRowSmall(days: List<DayInfo>) {
 
         Spacer(Modifier.height(8.dp))
 
-        // huruf hari
+
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -242,7 +236,7 @@ fun DaysRowSmall(days: List<DayInfo>) {
     }
 }
 
-// ---------- SWITCH STYLING ----------
+
 @Composable
 fun AlarmToggle(
     checked: Boolean,

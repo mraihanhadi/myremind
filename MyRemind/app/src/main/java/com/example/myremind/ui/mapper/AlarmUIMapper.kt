@@ -1,4 +1,3 @@
-// file: ui/mapper/AlarmUiMapper.kt
 package com.example.myremind.ui.mapper
 
 import com.example.myremind.model.Alarm
@@ -23,7 +22,6 @@ private fun List<Boolean>.toDayInfoList(): List<DayInfo> {
     }
 }
 
-// buat Home card besar
 fun Alarm.toAlarmEntry(): AlarmEntry {
     val (time, ampm) = getTimeCal().toTimeString()
     return AlarmEntry(
@@ -35,15 +33,14 @@ fun Alarm.toAlarmEntry(): AlarmEntry {
     )
 }
 
-// buat Alarm grid kecil
 fun Alarm.toAlarmSmall(): AlarmSmall {
     val (time, ampm) = getTimeCal().toTimeString()
     return AlarmSmall(
-        id = getAlarmId(), // <--- penting buat edit
+        id = getAlarmId(),
         label = getAlarmName(),
         time = time,
         ampm = ampm,
         days = getRepeatDays().toDayInfoList(),
-        enabled = true // sementara semua true, nanti bisa dari modelmu
+        enabled = true
     )
 }

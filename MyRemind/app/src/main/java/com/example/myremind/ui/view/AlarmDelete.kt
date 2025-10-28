@@ -25,12 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * Screen delete mode.
- *
- * - alarms: list alarm yg keliatan user (AlarmSmall harus punya `id: Int`)
- * - onDeleteSelected: dipanggil dengan daftar ID yg dipilih
- */
+
 @Composable
 fun AlarmDeleteScreen(
     alarms: List<AlarmSmall>,
@@ -42,7 +37,7 @@ fun AlarmDeleteScreen(
     onClickProfile: () -> Unit,
     onDeleteSelected: (List<Int>) -> Unit
 ) {
-    // set ID alarm terpilih
+    
     var selectedIds by remember { mutableStateOf(setOf<Int>()) }
 
     fun toggleSelect(id: Int) {
@@ -62,9 +57,9 @@ fun AlarmDeleteScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 110.dp) // ruang bottom bar
+                .padding(bottom = 110.dp) 
         ) {
-            // HEADER: "<  Alarm"
+            
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -99,7 +94,7 @@ fun AlarmDeleteScreen(
                 )
             }
 
-            // GRID 2 kolom, selectable
+            
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier
@@ -122,11 +117,11 @@ fun AlarmDeleteScreen(
             }
         }
 
-        // ======== FAB DELETE KECIL DI KANAN BAWAH ========
+        
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 98.dp) // posisinya sama kaya desain kamu
+                .padding(end = 20.dp, bottom = 98.dp) 
         ) {
             DeleteFabWithBadge(
                 count = selectedIds.size,
@@ -138,7 +133,7 @@ fun AlarmDeleteScreen(
             )
         }
 
-        // ======== BOTTOM BAR (tab Alarm aktif) ========
+        
         BottomBarWithFabSelectable(
             modifier = Modifier.align(Alignment.BottomCenter),
             selectedTab = BottomTab.ALARM,
@@ -151,13 +146,7 @@ fun AlarmDeleteScreen(
     }
 }
 
-/**
- * Tombol delete bulat putih + badge merah kecil angka jumlah selected.
- * Mirip screenshot kamu:
- *  - lingkaran putih
- *  - icon trash merah
- *  - badge merah kecil di pojok kanan atas
- */
+
 @Composable
 private fun DeleteFabWithBadge(
     count: Int,
@@ -171,7 +160,7 @@ private fun DeleteFabWithBadge(
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        // icon trash
+        
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -183,12 +172,12 @@ private fun DeleteFabWithBadge(
             )
         }
 
-        // badge merah di pojok kanan atas
+        
         if (count > 0) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = 4.dp, y = (-4).dp) // sedikit keluar lingkaran biar sama kaya mock
+                    .offset(x = 4.dp, y = (-4).dp) 
                     .clip(CircleShape)
                     .background(Color(0xFFFF2B2B))
                     .padding(horizontal = 6.dp, vertical = 2.dp),
@@ -206,14 +195,7 @@ private fun DeleteFabWithBadge(
     }
 }
 
-/**
- * Card alarm versi mode delete:
- * - sama bentuknya dgn AlarmGridCard
- * - ada badge kanan atas:
- *    - kuning + ✓ kalau selected
- *    - putih kosong kalau tidak
- * - toggleSelect dipanggil saat card di-tap
- */
+
 @Composable
 private fun SelectableAlarmGridCard(
     alarm: AlarmSmall,
@@ -233,7 +215,7 @@ private fun SelectableAlarmGridCard(
             modifier = Modifier
                 .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
-            // badge pojok kanan atas
+            
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -255,7 +237,7 @@ private fun SelectableAlarmGridCard(
             }
 
             Column {
-                // label
+                
                 Text(
                     text = alarm.label,
                     color = TextSoft,
@@ -265,7 +247,7 @@ private fun SelectableAlarmGridCard(
 
                 Spacer(Modifier.height(16.dp))
 
-                // jam besar + AM
+                
                 Row(
                     verticalAlignment = Alignment.Bottom
                 ) {
@@ -288,12 +270,12 @@ private fun SelectableAlarmGridCard(
 
                 Spacer(Modifier.height(16.dp))
 
-                // hari
+                
                 DaysRowSmall(days = alarm.days)
 
                 Spacer(Modifier.height(16.dp))
 
-                // switch visual aja (non-interaktif di delete mode)
+                
                 DisabledAlarmToggleDisplay(checked = alarm.enabled)
             }
         }

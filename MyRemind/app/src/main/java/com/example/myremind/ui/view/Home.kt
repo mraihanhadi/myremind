@@ -19,21 +19,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// ---------- DATA UNTUK HOME ----------
+
 data class DayInfo(
-    val letter: String,   // "S", "M", ...
-    val active: Boolean   // untuk titik kuning
+    val letter: String,   
+    val active: Boolean   
 )
 
 data class AlarmEntry(
-    val label: String,        // "Work"
-    val time: String,         // "8:30"
-    val ampm: String,         // "AM"
-    val group: String,        // "GRUP 1"
-    val days: List<DayInfo>   // list hari
+    val label: String,        
+    val time: String,         
+    val ampm: String,         
+    val group: String,        
+    val days: List<DayInfo>   
 )
 
-// ---------- HOME SCREEN ----------
+
 @Composable
 fun HomeScreen(
     username: String,
@@ -50,14 +50,14 @@ fun HomeScreen(
             .fillMaxSize()
             .background(ScreenBlack)
     ) {
-        // Konten scroll
+        
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 110.dp) // ruang bottom bar
+                .padding(bottom = 110.dp) 
         ) {
 
-            // Header "Hello, User" + bell
+            
             item {
                 Row(
                     modifier = Modifier
@@ -104,7 +104,7 @@ fun HomeScreen(
                 }
             }
 
-            // Daftar kartu besar alarm (full width)
+            
             items(alarms) { alarm ->
                 AlarmBigCard(
                     alarm = alarm,
@@ -115,7 +115,7 @@ fun HomeScreen(
             }
         }
 
-        // Bottom bar
+        
         BottomBarWithFabSelectable(
             modifier = Modifier
                 .align(Alignment.BottomCenter),
@@ -129,7 +129,7 @@ fun HomeScreen(
     }
 }
 
-// ---------- KARTU ALARM BESAR (sesuai HOME figma) ----------
+
 @Composable
 fun AlarmBigCard(
     alarm: AlarmEntry,
@@ -144,7 +144,7 @@ fun AlarmBigCard(
             modifier = Modifier
                 .padding(horizontal = 24.dp, vertical = 24.dp)
         ) {
-            // Baris "Work"
+            
             Text(
                 text = alarm.label,
                 color = TextSoft,
@@ -154,7 +154,7 @@ fun AlarmBigCard(
 
             Spacer(Modifier.height(16.dp))
 
-            // Baris waktu besar + grup di kanan
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -193,17 +193,17 @@ fun AlarmBigCard(
 
             Spacer(Modifier.height(24.dp))
 
-            // Baris hari dengan titik kuning
+            
             DaysRowBig(alarm.days)
         }
     }
 }
 
-// ---------- ROW HARI (versi besar, seperti di HOME) ----------
+
 @Composable
 fun DaysRowBig(days: List<DayInfo>) {
     Column {
-        // titik kuning
+        
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -226,7 +226,7 @@ fun DaysRowBig(days: List<DayInfo>) {
 
         Spacer(Modifier.height(8.dp))
 
-        // huruf hari
+        
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
