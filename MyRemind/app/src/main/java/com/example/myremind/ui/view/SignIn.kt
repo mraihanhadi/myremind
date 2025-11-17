@@ -44,6 +44,7 @@ fun LoginScreen(
     loading: Boolean,
     errorMessage: String?,
     onDismissError: () -> Unit,
+    infoMessage: String?
 ) {
     var identifier by remember { mutableStateOf(TextFieldValue("")) } 
     var password by remember { mutableStateOf(TextFieldValue("")) }
@@ -95,6 +96,16 @@ fun LoginScreen(
             )
 
             Spacer(Modifier.height(12.dp))
+
+            if (infoMessage != null) {
+                Text(
+                    text = infoMessage,
+                    color = Color(0xFF81C784), // soft green
+                    fontSize = 16.sp,
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                )
+            }
 
             if (errorMessage != null) {
                 Text(

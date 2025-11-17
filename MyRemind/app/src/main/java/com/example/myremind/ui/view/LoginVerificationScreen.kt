@@ -30,7 +30,6 @@ fun LoginVerificationScreen(
     loading: Boolean,
     errorMessage: String?,
     onDismissError: () -> Unit,
-    onResend: (identifier: String) -> Unit,
     onVerify: (identifier: String) -> Unit
 ) {
     var identifier by remember { mutableStateOf(TextFieldValue("")) }
@@ -125,28 +124,6 @@ fun LoginVerificationScreen(
                             ) {
                                 onDismissError()
                             }
-                    )
-                }
-
-                Spacer(Modifier.height(8.dp))
-
-                
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Text(
-                        text = "Resend verification",
-                        color = TextWhite,
-                        fontSize = 16.sp,
-                        modifier = Modifier.clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {
-                            if (!loading) {
-                                onResend(identifier.text.trim())
-                            }
-                        }
                     )
                 }
 

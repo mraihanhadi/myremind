@@ -19,8 +19,7 @@ import com.example.myremind.ui.mapper.*
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
-    val authRepo = remember { MemoryUserRepository() }
-    val userController = remember { UserController(authRepo) }
+    val userController = remember { UserController() }
     val groupRepository = remember { MemoryGroupRepository() }
     val groupController = remember { GroupController(groupRepository) }
     var refreshFlag by remember { mutableStateOf(0) }
@@ -93,7 +92,8 @@ fun AppNavHost() {
                 onDismissError = {
                     userController.clearError()
                     refreshUI()
-                }
+                },
+                infoMessage = userController.infoMessage
             )
         }
 
@@ -136,44 +136,43 @@ fun AppNavHost() {
                 loading = userController.loading,
                 errorMessage = userController.lastError,
                 onDismissError = { userController.clearError() },
-                onResend = {  },
                 onVerify = { identifier ->
-                    navController.navigate(
-                        "change_password/${identifier}"
-                    ) {
-                        popUpTo(NavRoute.VERIFY) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
-
-        composable(
-            route = NavRoute.CHANGE_PASSWORD,
-            arguments = listOf(
-                navArgument("emailArg") { defaultValue = "" }
-            )
-        ) { backStackEntry ->
-            val emailArg = backStackEntry.arguments?.getString("emailArg") ?: ""
-
-            ChangePasswordScreen(
-                loading = userController.loading,
-                errorMessage = userController.lastError,
-                onDismissError = { userController.clearError() },
-                onSubmit = { newPassword ->
-                    userController.resetPassword(
-                        email = emailArg,
-                        newPassword = newPassword,
-                        onDone = {
+                        userController.resetPassword(identifier) {
                             navController.navigate(NavRoute.SIGNIN) {
-                                popUpTo(NavRoute.SIGNIN) { inclusive = true }
+                                popUpTo(NavRoute.VERIFY) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
-                    )
                 }
             )
         }
+
+//        composable(
+//            route = NavRoute.CHANGE_PASSWORD,
+//            arguments = listOf(
+//                navArgument("emailArg") { defaultValue = "" }
+//            )
+//        ) { backStackEntry ->
+//            val emailArg = backStackEntry.arguments?.getString("emailArg") ?: ""
+//
+//            ChangePasswordScreen(
+//                loading = userController.loading,
+//                errorMessage = userController.lastError,
+//                onDismissError = { userController.clearError() },
+//                onSubmit = { newPassword ->
+//                    userController.resetPassword(
+//                        email = emailArg,
+//                        newPassword = newPassword,
+//                        onDone = {
+//                            navController.navigate(NavRoute.SIGNIN) {
+//                                popUpTo(NavRoute.SIGNIN) { inclusive = true }
+//                                launchSingleTop = true
+//                            }
+//                        }
+//                    )
+//                }
+//            )
+//        }
 
         composable(NavRoute.HOME) {
             val email = userController.currentUser?.getEmail() ?: ""
@@ -363,6 +362,7 @@ fun AppNavHost() {
                 onClickProfile = {
                 },
                 onSignOut = {
+                    userController.signOut {  }
                     navController.navigate(NavRoute.SIGNIN) {
                         launchSingleTop = true
                     }
