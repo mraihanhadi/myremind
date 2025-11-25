@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myremind.model.AddAlarmForm
@@ -74,8 +76,11 @@ fun AddAlarmScreen(
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var dateMillis by remember { mutableStateOf<Long?>(null) }
+    var localError by remember { mutableStateOf<String?>(null) }
 
     val dateFmt = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+    val dateText = remember(dateMillis) { dateMillis?.let { dateFmt.format(it) } ?: "Pilih tanggal" }
     val timeText = remember(hour, minute) {
         if (hour != null && minute != null) {
             String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
@@ -134,6 +139,14 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(16.dp))
 
+                AppInputPill(
+                    value = desc,
+                    onValueChange = { desc = it },
+                    placeholder = "Deskripsi",
+                    singleLine = false,
+                    minHeight = 90.dp
+                )
+
                 Spacer(Modifier.height(16.dp))
 
                 DaysSelector(
@@ -176,6 +189,18 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
+                PillButtonField(
+                    text = dateText,
+                    trailing = {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = "Pick date",
+                            tint = Color.Black
+                        )
+                    },
+                    onClick = { showDatePicker = true }
+                )
+
                 Spacer(Modifier.height(10.dp))
 
                 PillButtonField(
@@ -192,12 +217,40 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(20.dp))
 
+                localError?.let { message ->
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = message,
+                        color = Color.Red,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                }
+
+                Spacer(Modifier.height(8.dp))
+
                 Button(
                     onClick = {
+                        val trimmedTitle = title.text.trim()
+                        when {
+                            trimmedTitle.isEmpty() -> {
+                                localError = "Judul wajib diisi"
+                                return@Button
+                            }
+
+                            hour == null || minute == null -> {
+                                localError = "Waktu wajib dipilih"
+                                return@Button
+                            }
+
+                            else -> localError = null
+                        }
+
                         onSave(
                             AddAlarmForm(
-                                title = title.text.trim(),
+                                title = trimmedTitle,
+                                description = desc.text.trim(),
                                 days = days,
+                                dateMillis = dateMillis,
                                 hour = hour,
                                 minute = minute,
                                 selectedTarget = selectedTarget
@@ -218,6 +271,24 @@ fun AddAlarmScreen(
                     Spacer(Modifier.width(8.dp))
                     Icon(Icons.Default.Check, contentDescription = "Save")
                 }
+            }
+        }
+
+        if (showDatePicker) {
+            val dateState = rememberDatePickerState(initialSelectedDateMillis = dateMillis)
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        dateMillis = dateState.selectedDateMillis
+                        showDatePicker = false
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                }
+            ) {
+                DatePicker(state = dateState)
             }
         }
 
@@ -260,7 +331,9 @@ fun AppInputPill(
     onValueChange: (TextFieldValue) -> Unit,
     placeholder: String,
     minLines: Int = 1,
-    maxLines: Int = 1
+    maxLines: Int = 1,
+    singleLine: Boolean = maxLines == 1,
+    minHeight: Dp = 56.dp
 ) {
     TextField(
         value = value,
@@ -273,7 +346,7 @@ fun AppInputPill(
         },
         minLines = minLines,
         maxLines = maxLines,
-        singleLine = maxLines == 1,
+        singleLine = singleLine,
         shape = RoundedCornerShape(16.dp),
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.White,
@@ -287,7 +360,9 @@ fun AppInputPill(
             color = Color.Black,
             fontSize = 16.sp
         ),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = minHeight)
     )
 }
 

@@ -53,7 +53,11 @@ class UserController() : ViewModel() {
                 if(!snapshot.exists()){
                     throw Exception("Data user tidak ditemukan.")
                 }
-                val user = User(snapshot.getString("email")?:"", snapshot.getString("username")?:"", password)
+                val user = User(
+                    email = snapshot.getString("email") ?: "",
+                    username = snapshot.getString("username") ?: "",
+                    uid = uid
+                )
                 currentUser = user
                 loading = false
                 onSuccess()
@@ -87,11 +91,11 @@ class UserController() : ViewModel() {
                 val auth = FirebaseAuth.getInstance()
                 val authResult = auth.createUserWithEmailAndPassword(email,password).await()
                 val firebaseUser = authResult.user?: throw Exception("Gagal Membuat Akun")
-                val user = User(email, username, password)
                 val firestore = FirebaseFirestore.getInstance()
                 val userData = mapOf("email" to email, "username" to username)
                 firestore.collection("users").document(firebaseUser.uid).set(userData).await()
                 firebaseUser.sendEmailVerification().await()
+                currentUser = User(email = email, username = username, uid = firebaseUser.uid)
                 loading = false
                 onSuccess()
             }catch (e:Exception){
@@ -121,30 +125,18 @@ class UserController() : ViewModel() {
         viewModelScope.launch{
             try{
                 val auth = FirebaseAuth.getInstance()
-                val result = auth.fetchSignInMethodsForEmail(email).await()
-                val methods = result.signInMethods
-
-                if (methods.isNullOrEmpty()) {
-                    loading = false
-                    lastError = "Email tidak terdaftar."
-                    onResult(false)
-                    return@launch
-                }
                 auth.sendPasswordResetEmail(email).await()
                 loading = false
-                infoMessage = "Link reset password telah dikirim. Silahkan cek email."
+                infoMessage = "Jika akun terdaftar, link reset password telah dikirim."
                 onResult(true)
             }catch (e:Exception){
                 loading = false
                 lastError = when (e) {
-                    is FirebaseAuthInvalidUserException ->
-                        "Email tidak terdaftar."
-
                     is FirebaseAuthInvalidCredentialsException ->
                         "Format email tidak valid."
 
                     else ->
-                        e.message ?: "Gagal mengirim email reset password."
+                        "Jika akun terdaftar, link reset password telah dikirim."
                 }
                 onResult(false)
             }

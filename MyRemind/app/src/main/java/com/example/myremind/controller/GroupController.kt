@@ -24,6 +24,38 @@ class GroupController : ViewModel() {
     var loading by mutableStateOf(false)
         private set
 
+    private suspend fun fetchGroup(groupId: String): Group? {
+        return try {
+            FirebaseFirestore.getInstance()
+                .collection("groups")
+                .document(groupId)
+                .get()
+                .await()
+                .toObject(Group::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun requireMembership(group: Group?, userEmail: String, requireAdmin: Boolean = false): Boolean {
+        if (group == null) {
+            lastError = "Grup tidak ditemukan."
+            return false
+        }
+
+        if (!group.members.contains(userEmail)) {
+            lastError = "Anda bukan anggota grup ini."
+            return false
+        }
+
+        if (requireAdmin && group.members.firstOrNull() != userEmail) {
+            lastError = "Hanya admin yang boleh melakukan aksi ini."
+            return false
+        }
+
+        return true
+    }
+
     fun clearError() {
         lastError = null
     }
@@ -112,16 +144,18 @@ class GroupController : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val firestore = FirebaseFirestore.getInstance()
+                val group = fetchGroup(groupId)
+                if (!requireMembership(group, currentUserEmail, requireAdmin = true)) {
+                    loading = false
+                    return@launch
+                }
 
-                val docRef = firestore
-                    .collection("groups")
-                    .document(groupId)
+                val firestore = FirebaseFirestore.getInstance()
+                val docRef = firestore.collection("groups").document(groupId)
 
                 // add email to array (no duplicates)
                 docRef.update("members", FieldValue.arrayUnion(email)).await()
 
-                // reload updated group
                 val updated = docRef.get().await().toObject(Group::class.java)
 
                 refreshGroupsFor(currentUserEmail)
@@ -151,6 +185,14 @@ class GroupController : ViewModel() {
 
         viewModelScope.launch {
             try {
+                val group = fetchGroup(groupId)
+                val isSelfRemoval = email.equals(currentUserEmail, ignoreCase = true)
+                val allowed = requireMembership(group, currentUserEmail, requireAdmin = !isSelfRemoval)
+                if (!allowed) {
+                    loading = false
+                    return@launch
+                }
+
                 val firestore = FirebaseFirestore.getInstance()
 
                 val docRef = firestore
@@ -172,7 +214,7 @@ class GroupController : ViewModel() {
             }
         }
     }
-    fun getGroupDetail(groupId: String, onResult: (Group?) -> Unit) {
+    fun getGroupDetail(groupId: String, viewerEmail: String, onResult: (Group?) -> Unit) {
         if (groupId.isBlank()) {
             onResult(null)
             return
@@ -180,16 +222,10 @@ class GroupController : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val firestore = FirebaseFirestore.getInstance()
+                val group = fetchGroup(groupId)
+                val allowed = requireMembership(group, viewerEmail)
 
-                val group = firestore
-                    .collection("groups")
-                    .document(groupId)
-                    .get()
-                    .await()
-                    .toObject(Group::class.java)
-
-                onResult(group)
+                onResult(if (allowed) group else null)
 
             } catch (e: Exception) {
                 lastError = e.message ?: "Gagal mengambil detail grup."

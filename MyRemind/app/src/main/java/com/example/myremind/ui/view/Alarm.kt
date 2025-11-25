@@ -38,7 +38,8 @@ fun AlarmScreen(
     onClickGroup: () -> Unit,
     onClickProfile: () -> Unit,
     onClickDelete: () -> Unit,
-    onAlarmClick: (String) -> Unit
+    onAlarmClick: (String) -> Unit,
+    onToggleAlarm: (String, Boolean) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -95,7 +96,8 @@ fun AlarmScreen(
                 items(alarms, key = { it.id }) { alarm ->
                     AlarmGridCard(
                         alarm = alarm,
-                        onClick = { onAlarmClick(alarm.id) }
+                        onClick = { onAlarmClick(alarm.id) },
+                        onToggle = { enabled -> onToggleAlarm(alarm.id, enabled) }
                     )
                 }
             }
@@ -117,6 +119,7 @@ fun AlarmScreen(
 fun AlarmGridCard(
     alarm: AlarmSmall,
     onClick: () -> Unit,
+    onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -165,7 +168,7 @@ fun AlarmGridCard(
 
             AlarmToggle(
                 checked = alarm.enabled,
-                onCheckedChange = { }
+                onCheckedChange = onToggle
             )
         }
     }

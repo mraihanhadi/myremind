@@ -35,6 +35,7 @@ fun EditAlarmScreen(
     onSaveChanges: (AddAlarmForm) -> Unit
 ) {
     var title by remember { mutableStateOf(TextFieldValue(alarm.title)) }
+    var desc by remember { mutableStateOf(TextFieldValue(alarm.description)) }
 
     // repeatDays sudah List<Boolean> di Alarm baru
     var days by remember { mutableStateOf(alarm.repeatDays.toMutableList()) }
@@ -121,6 +122,16 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(16.dp))
 
+                AppInputPill(
+                    value = desc,
+                    onValueChange = { desc = it },
+                    placeholder = "Deskripsi",
+                    singleLine = false,
+                    minHeight = 90.dp
+                )
+
+                Spacer(Modifier.height(16.dp))
+
                 DaysSelector(
                     days = days,
                     onToggle = { idx ->
@@ -178,7 +189,9 @@ fun EditAlarmScreen(
                         onSaveChanges(
                             AddAlarmForm(
                                 title = title.text.trim(),
+                                description = desc.text.trim(),
                                 days = days,
+                                dateMillis = dateMillis,
                                 hour = hour,
                                 minute = minute,
                                 selectedTarget = selectedTarget

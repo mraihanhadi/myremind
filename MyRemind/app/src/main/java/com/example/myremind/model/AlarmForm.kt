@@ -10,7 +10,9 @@ data class SelectableGroupOption(
 
 data class AddAlarmForm(
     val title: String,
+    val description: String,
     val days: List<Boolean>,
+    val dateMillis: Long?,
     val hour: Int?,
     val minute: Int?,
     val selectedTarget: SelectableGroupOption

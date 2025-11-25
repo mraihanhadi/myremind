@@ -5,6 +5,7 @@ import java.util.Calendar
 data class Alarm(
     val id: String = "",
     val title: String = "",
+    val description: String = "",
     val repeatDays: List<Boolean> = List(7) { false },
     val dateMillis: Long? = null,
     val hour: Int? = null,

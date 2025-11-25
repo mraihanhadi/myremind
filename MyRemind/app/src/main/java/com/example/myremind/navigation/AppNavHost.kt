@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myremind.controller.*
 import com.example.myremind.model.*
 import com.example.myremind.ui.mapper.*
@@ -15,9 +16,9 @@ import com.example.myremind.ui.view.*
 fun AppNavHost() {
     val navController = rememberNavController()
 
-    val userController = remember { UserController() }
-    val groupController = remember { GroupController() }
-    val alarmController = remember { AlarmController() }
+    val userController: UserController = viewModel()
+    val groupController: GroupController = viewModel()
+    val alarmController: AlarmController = viewModel()
 
     var refreshFlag by remember { mutableStateOf(0) }
     fun refreshUI() { refreshFlag++ }
@@ -204,6 +205,9 @@ fun AppNavHost() {
                     navController.navigate(NavRoute.editAlarmRoute(alarmId)) {
                         launchSingleTop = true
                     }
+                },
+                onToggleAlarm = { alarmId, enabled ->
+                    alarmController.setAlarmEnabled(alarmId, enabled, joinedGroupIds)
                 }
             )
         }
@@ -244,7 +248,9 @@ fun AppNavHost() {
                     val alarm = Alarm(
                         id = "",
                         title = form.title.trim(),
+                        description = form.description,
                         repeatDays = form.days,
+                        dateMillis = form.dateMillis,
                         hour = form.hour,
                         minute = form.minute,
                         ownerType = ownerType,
@@ -437,7 +443,9 @@ fun AppNavHost() {
 
                     val editedAlarm = alarmToEdit.copy(
                         title = editedForm.title,
+                        description = editedForm.description,
                         repeatDays = editedForm.days,
+                        dateMillis = editedForm.dateMillis,
                         hour = editedForm.hour,
                         minute = editedForm.minute,
                         ownerType = target.ownerType,
@@ -468,8 +476,8 @@ fun AppNavHost() {
 
             var groupDetail by remember { mutableStateOf<GroupDetail?>(null) }
 
-            LaunchedEffect(groupId) {
-                groupController.getGroupDetail(groupId) { group ->
+            LaunchedEffect(groupId, currentEmail) {
+                groupController.getGroupDetail(groupId, currentEmail) { group ->
                     groupDetail =
                         if (group != null) {
                             GroupDetail(

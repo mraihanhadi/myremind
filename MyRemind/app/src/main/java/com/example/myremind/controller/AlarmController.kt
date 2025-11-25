@@ -121,6 +121,21 @@ class AlarmController : ViewModel() {
             }
         }
     }
+    fun setAlarmEnabled(alarmId: String, enabled: Boolean, joinedGroupIds: List<String>, onComplete: () -> Unit = {}) {
+        val alarm = alarmList.firstOrNull { it.id == alarmId }
+        if (alarm == null) {
+            lastError = "Alarm tidak ditemukan."
+            return
+        }
+
+        // Optimistic UI update
+        alarmList = alarmList.map { if (it.id == alarmId) it.copy(enabled = enabled) else it }
+
+        saveAlarm(alarm.copy(enabled = enabled)) {
+            loadAlarms(joinedGroupIds)
+            onComplete()
+        }
+    }
     fun deleteAlarm(alarm: Alarm, onSuccess: () -> Unit = {}) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid == null) {

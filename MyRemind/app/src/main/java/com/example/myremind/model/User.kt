@@ -1,9 +1,9 @@
 package com.example.myremind.model
 
-class User(
-    private var email: String,
-    private var username: String,
-    private var password: String
+data class User(
+    val email: String,
+    val username: String,
+    val uid: String? = null
 ) {
     fun getEmail(): String = email
     fun getUsername(): String = username
