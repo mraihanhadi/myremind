@@ -82,9 +82,13 @@ fun AppNavHost() {
                     refreshUI()
                 },
                 onSignUp = {
+                    userController.clearError()
+                    userController.clearInfo()
                     navController.navigate("signup")
                 },
                 onResetPassword = {
+                    userController.clearError()
+                    userController.clearInfo()
                     navController.navigate(route = NavRoute.VERIFY)
                 },
                 loading = userController.loading,
@@ -137,10 +141,11 @@ fun AppNavHost() {
                 errorMessage = userController.lastError,
                 onDismissError = { userController.clearError() },
                 onVerify = { identifier ->
-                        userController.resetPassword(identifier) {
-                            navController.navigate(NavRoute.SIGNIN) {
-                                popUpTo(NavRoute.VERIFY) { inclusive = true }
-                                launchSingleTop = true
+                        userController.resetPassword(identifier) { success -> if(success){
+                                navController.navigate(NavRoute.SIGNIN) {
+                                    popUpTo(NavRoute.VERIFY) { inclusive = true }
+                                    launchSingleTop = true
+                                }
                             }
                         }
                 }

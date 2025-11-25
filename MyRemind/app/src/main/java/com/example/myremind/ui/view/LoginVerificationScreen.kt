@@ -34,7 +34,7 @@ fun LoginVerificationScreen(
 ) {
     var identifier by remember { mutableStateOf(TextFieldValue("")) }
 
-    val canSubmit = identifier.text.isNotBlank() && !loading
+    val canSubmit = !loading
 
     Box(
         modifier = Modifier

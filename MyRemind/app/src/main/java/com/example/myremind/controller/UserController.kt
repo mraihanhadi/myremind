@@ -31,9 +31,12 @@ class UserController() : ViewModel() {
     fun clearInfo() { infoMessage = null }
 
     fun signIn(identifier: String, password: String, onSuccess: () -> Unit) {
+        if(identifier.isBlank() || password.isBlank()){
+            lastError = "Semua field wajib diisi"
+            return
+        }
         loading = true
         lastError = null
-
         viewModelScope.launch{
             try{
                 val auth = FirebaseAuth.getInstance()
@@ -106,17 +109,31 @@ class UserController() : ViewModel() {
         }
     }
 
-    fun resetPassword(email: String, onDone: () -> Unit) {
+    fun resetPassword(email: String, onResult: (Boolean) -> Unit) {
+        if (email.isBlank()){
+            lastError = "Email tidak boleh kosong"
+            onResult(false)
+            return
+        }
         loading = true
         lastError = null
 
         viewModelScope.launch{
             try{
                 val auth = FirebaseAuth.getInstance()
+                val result = auth.fetchSignInMethodsForEmail(email).await()
+                val methods = result.signInMethods
+
+                if (methods.isNullOrEmpty()) {
+                    loading = false
+                    lastError = "Email tidak terdaftar."
+                    onResult(false)
+                    return@launch
+                }
                 auth.sendPasswordResetEmail(email).await()
                 loading = false
                 infoMessage = "Link reset password telah dikirim. Silahkan cek email."
-                onDone()
+                onResult(true)
             }catch (e:Exception){
                 loading = false
                 lastError = when (e) {
@@ -129,6 +146,7 @@ class UserController() : ViewModel() {
                     else ->
                         e.message ?: "Gagal mengirim email reset password."
                 }
+                onResult(false)
             }
         }
     }
