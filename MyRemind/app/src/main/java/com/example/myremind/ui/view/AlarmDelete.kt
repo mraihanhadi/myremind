@@ -11,10 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
 @Composable
 fun AlarmDeleteScreen(
     alarms: List<AlarmSmall>,
@@ -35,12 +31,12 @@ fun AlarmDeleteScreen(
     onClickAdd: () -> Unit,
     onClickGroup: () -> Unit,
     onClickProfile: () -> Unit,
-    onDeleteSelected: (List<Int>) -> Unit
+    onDeleteSelected: (List<String>) -> Unit
 ) {
-    
-    var selectedIds by remember { mutableStateOf(setOf<Int>()) }
 
-    fun toggleSelect(id: Int) {
+    var selectedIds by remember { mutableStateOf(setOf<String>()) }
+
+    fun toggleSelect(id: String) {
         selectedIds = if (selectedIds.contains(id)) {
             selectedIds - id
         } else {
@@ -57,9 +53,8 @@ fun AlarmDeleteScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 110.dp) 
+                .padding(bottom = 110.dp)
         ) {
-            
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -94,7 +89,6 @@ fun AlarmDeleteScreen(
                 )
             }
 
-            
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier
@@ -117,11 +111,10 @@ fun AlarmDeleteScreen(
             }
         }
 
-        
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 98.dp) 
+                .padding(end = 20.dp, bottom = 98.dp)
         ) {
             DeleteFabWithBadge(
                 count = selectedIds.size,
@@ -133,7 +126,6 @@ fun AlarmDeleteScreen(
             )
         }
 
-        
         BottomBarWithFabSelectable(
             modifier = Modifier.align(Alignment.BottomCenter),
             selectedTab = BottomTab.ALARM,
@@ -145,7 +137,6 @@ fun AlarmDeleteScreen(
         )
     }
 }
-
 
 @Composable
 private fun DeleteFabWithBadge(
@@ -160,10 +151,8 @@ private fun DeleteFabWithBadge(
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = "Delete selected",
@@ -172,12 +161,11 @@ private fun DeleteFabWithBadge(
             )
         }
 
-        
         if (count > 0) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = 4.dp, y = (-4).dp) 
+                    .offset(x = 4.dp, y = (-4).dp)
                     .clip(CircleShape)
                     .background(Color(0xFFFF2B2B))
                     .padding(horizontal = 6.dp, vertical = 2.dp),
@@ -195,7 +183,6 @@ private fun DeleteFabWithBadge(
     }
 }
 
-
 @Composable
 private fun SelectableAlarmGridCard(
     alarm: AlarmSmall,
@@ -211,19 +198,14 @@ private fun SelectableAlarmGridCard(
             .wrapContentHeight()
             .clickable { onToggleSelect() }
     ) {
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 20.dp)
-        ) {
-            
+        Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
+
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .size(28.dp)
                     .clip(RoundedCornerShape(6.dp))
-                    .background(
-                        if (isSelected) AccentYellow else Color.White
-                    ),
+                    .background(if (isSelected) AccentYellow else Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 if (isSelected) {
@@ -237,7 +219,6 @@ private fun SelectableAlarmGridCard(
             }
 
             Column {
-                
                 Text(
                     text = alarm.label,
                     color = TextSoft,
@@ -247,10 +228,7 @@ private fun SelectableAlarmGridCard(
 
                 Spacer(Modifier.height(16.dp))
 
-                
-                Row(
-                    verticalAlignment = Alignment.Bottom
-                ) {
+                Row(verticalAlignment = Alignment.Bottom) {
                     Text(
                         text = alarm.time,
                         color = TextWhite,
@@ -270,12 +248,10 @@ private fun SelectableAlarmGridCard(
 
                 Spacer(Modifier.height(16.dp))
 
-                
                 DaysRowSmall(days = alarm.days)
 
                 Spacer(Modifier.height(16.dp))
 
-                
                 DisabledAlarmToggleDisplay(checked = alarm.enabled)
             }
         }
@@ -289,9 +265,7 @@ private fun DisabledAlarmToggleDisplay(
     val trackColor = if (checked) AccentYellow else Color.White
     val thumbColor = Color.White
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
                 .width(48.dp)

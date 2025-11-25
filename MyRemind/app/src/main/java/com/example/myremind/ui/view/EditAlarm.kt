@@ -10,24 +10,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,47 +21,36 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Locale
 import com.example.myremind.model.AddAlarmForm
 import com.example.myremind.model.SelectableGroupOption
-import com.example.myremind.model.EditableAlarmData
-
+import com.example.myremind.model.Alarm   // ✅ pakai Alarm model baru
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditAlarmScreen(
-    alarm: EditableAlarmData,
+    alarm: Alarm, // ✅ CHANGED
     groupChoices: List<SelectableGroupOption>,
     onBack: () -> Unit,
     onSaveChanges: (AddAlarmForm) -> Unit
 ) {
-    
-
-    
     var title by remember { mutableStateOf(TextFieldValue(alarm.title)) }
 
-    
+    // repeatDays sudah List<Boolean> di Alarm baru
     var days by remember { mutableStateOf(alarm.repeatDays.toMutableList()) }
 
-    
     var dateMillis by remember { mutableStateOf(alarm.dateMillis) }
     var hour by remember { mutableStateOf(alarm.hour) }
     var minute by remember { mutableStateOf(alarm.minute) }
 
-    
     var expanded by remember { mutableStateOf(false) }
 
-    
     val initialSelectedTarget = remember {
-        
         groupChoices.firstOrNull { choice ->
             if (alarm.ownerType == "personal") {
                 choice.ownerType == "personal"
             } else {
-                choice.ownerType == "group" &&
-                        choice.groupId == alarm.groupId
+                choice.ownerType == "group" && choice.groupId == alarm.groupId
             }
         } ?: SelectableGroupOption(
             label = if (alarm.ownerType == "personal") "Personal"
@@ -91,23 +63,21 @@ fun EditAlarmScreen(
 
     var selectedTarget by remember { mutableStateOf(initialSelectedTarget) }
 
-    
-    val cal = remember { java.util.Calendar.getInstance() }
-
+    val cal = remember { Calendar.getInstance() }
     val dateFmt = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()) }
+
     val dateText = remember(dateMillis) {
         dateMillis?.let { dateFmt.format(it) } ?: "dd/mm/yyyy"
     }
     val timeText = remember(hour, minute) {
-        if (hour != null && minute != null) {
+        if (hour != null && minute != null)
             String.format(java.util.Locale.getDefault(), "%02d:%02d", hour, minute)
-        } else "00:00"
+        else "00:00"
     }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
-    
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -118,7 +88,6 @@ fun EditAlarmScreen(
                 .fillMaxSize()
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -126,11 +95,7 @@ fun EditAlarmScreen(
                     .fillMaxWidth()
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = TextWhite
-                    )
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextWhite)
                 }
                 Text(
                     text = "Edit Alarm",
@@ -141,7 +106,6 @@ fun EditAlarmScreen(
                 )
             }
 
-            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -149,7 +113,6 @@ fun EditAlarmScreen(
                     .background(CardDark)
                     .padding(20.dp)
             ) {
-                
                 AppInputPill(
                     value = title,
                     onValueChange = { title = it },
@@ -158,7 +121,6 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                
                 DaysSelector(
                     days = days,
                     onToggle = { idx ->
@@ -168,9 +130,8 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                
                 GroupPickerField(
-                    selected = selectedTarget.label,
+                    selectedLabel = selectedTarget.label,
                     onClick = { expanded = !expanded }
                 )
 
@@ -181,13 +142,7 @@ fun EditAlarmScreen(
                 ) {
                     groupChoices.forEach { option ->
                         DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = option.label,
-                                    color = Color.Black,
-                                    fontSize = 16.sp
-                                )
-                            },
+                            text = { Text(option.label, color = Color.Black, fontSize = 16.sp) },
                             onClick = {
                                 selectedTarget = option
                                 expanded = false
@@ -198,37 +153,26 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                
                 PillButtonField(
                     text = dateText,
                     trailing = {
-                        Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = "Pick date",
-                            tint = Color.Black
-                        )
+                        Icon(Icons.Default.CalendarMonth, contentDescription = "Pick date", tint = Color.Black)
                     },
                     onClick = { showDatePicker = true }
                 )
 
                 Spacer(Modifier.height(10.dp))
 
-                
                 PillButtonField(
                     text = timeText,
                     trailing = {
-                        Icon(
-                            imageVector = Icons.Default.AccessTime,
-                            contentDescription = "Pick time",
-                            tint = Color.Black
-                        )
+                        Icon(Icons.Default.AccessTime, contentDescription = "Pick time", tint = Color.Black)
                     },
                     onClick = { showTimePicker = true }
                 )
 
                 Spacer(Modifier.height(20.dp))
 
-                
                 Button(
                     onClick = {
                         onSaveChanges(
@@ -258,20 +202,15 @@ fun EditAlarmScreen(
             }
         }
 
-        
         if (showDatePicker) {
-            val dateState = rememberDatePickerState(
-                initialSelectedDateMillis = dateMillis
-            )
+            val dateState = rememberDatePickerState(initialSelectedDateMillis = dateMillis)
             DatePickerDialog(
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
-                    TextButton(
-                        onClick = {
-                            dateMillis = dateState.selectedDateMillis
-                            showDatePicker = false
-                        }
-                    ) { Text("OK") }
+                    TextButton(onClick = {
+                        dateMillis = dateState.selectedDateMillis
+                        showDatePicker = false
+                    }) { Text("OK") }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
@@ -281,7 +220,6 @@ fun EditAlarmScreen(
             }
         }
 
-        
         if (showTimePicker) {
             val timeState = rememberTimePickerState(
                 initialHour = hour ?: cal.get(Calendar.HOUR_OF_DAY),
@@ -301,10 +239,7 @@ fun EditAlarmScreen(
                     TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
                 },
                 text = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                         TimePicker(state = timeState)
                     }
                 }
@@ -312,159 +247,3 @@ fun EditAlarmScreen(
         }
     }
 }
-
-@Composable
-private fun AppInputPill(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
-    placeholder: String,
-    minLines: Int = 1,
-    maxLines: Int = 1
-) {
-    TextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = {
-            Text(
-                placeholder,
-                color = Color(0xFF9E9E9E)
-            )
-        },
-        minLines = minLines,
-        maxLines = maxLines,
-        singleLine = maxLines == 1,
-        shape = RoundedCornerShape(16.dp),
-        colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.White,
-            focusedContainerColor = Color.White,
-            disabledContainerColor = Color.White,
-            cursorColor = Color.Black,
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent
-        ),
-        textStyle = LocalTextStyle.current.copy(
-            color = Color.Black,
-            fontSize = 16.sp
-        ),
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
-private fun PillButtonField(
-    text: String,
-    trailing: (@Composable () -> Unit)? = null,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) { onClick() }
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = text,
-            color = Color(0xFF808080),
-            fontSize = 16.sp
-        )
-
-        if (trailing != null) {
-            Spacer(Modifier.width(12.dp))
-            trailing()
-        }
-    }
-}
-
-
-@Composable
-private fun DaysSelector(
-    days: List<Boolean>,
-    onToggle: (Int) -> Unit
-) {
-    val labels = listOf("S","M","T","W","T","F","S")
-
-    
-    Row(
-        modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        labels.forEach { label ->
-            Text(
-                text = label,
-                color = AccentYellow,
-                fontSize = 12.sp,
-                modifier = Modifier.width(20.dp),
-                textAlign = TextAlign.Start
-            )
-        }
-    }
-
-    
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        labels.forEachIndexed { idx, s ->
-            val selected = days[idx]
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        if (selected) AccentYellow.copy(alpha = 0.18f)
-                        else Color.White
-                    )
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        onToggle(idx)
-                    }
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
-            ) {
-                Text(
-                    text = s,
-                    color = if (selected) AccentYellow else Color(0xFF444444),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun GroupPickerField(
-    selected: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = selected,
-            color = Color(0xFF444444),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        Text(
-            text = "▼",
-            color = Color.Black,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-

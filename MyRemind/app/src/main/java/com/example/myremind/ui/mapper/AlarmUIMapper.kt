@@ -6,9 +6,14 @@ import com.example.myremind.ui.view.AlarmSmall
 import com.example.myremind.ui.view.DayInfo
 import java.util.Calendar
 
-private fun Calendar.toTimeString(): Pair<String,String> {
-    val h = get(Calendar.HOUR_OF_DAY)
-    val m = get(Calendar.MINUTE)
+private fun Alarm.toTimeString(): Pair<String, String> {
+    val cal = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, hour ?: 0)
+        set(Calendar.MINUTE, minute ?: 0)
+    }
+
+    val h = cal.get(Calendar.HOUR_OF_DAY)
+    val m = cal.get(Calendar.MINUTE)
     val ampm = if (h < 12) "AM" else "PM"
     val hour12 = if (h % 12 == 0) 12 else (h % 12)
     val time = String.format("%d:%02d", hour12, m)
@@ -18,29 +23,29 @@ private fun Calendar.toTimeString(): Pair<String,String> {
 private fun List<Boolean>.toDayInfoList(): List<DayInfo> {
     val letters = listOf("S","M","T","W","T","F","S")
     return letters.mapIndexed { idx, letter ->
-        DayInfo(letter = letter, active = (this.getOrNull(idx) == true))
+        DayInfo(letter = letter, active = (getOrNull(idx) == true))
     }
 }
 
 fun Alarm.toAlarmEntry(): AlarmEntry {
-    val (time, ampm) = getTimeCal().toTimeString()
+    val (time, ampm) = toTimeString()
     return AlarmEntry(
-        label = getAlarmName(),
+        label = title,
         time = time,
         ampm = ampm,
-        group = getGroupName() ?: "Personal",
-        days = getRepeatDays().toDayInfoList()
+        group = groupName ?: "Personal",
+        days = repeatDays.toDayInfoList()
     )
 }
 
 fun Alarm.toAlarmSmall(): AlarmSmall {
-    val (time, ampm) = getTimeCal().toTimeString()
+    val (time, ampm) = toTimeString()
     return AlarmSmall(
-        id = getAlarmId(),
-        label = getAlarmName(),
+        id = id,
+        label = title,
         time = time,
         ampm = ampm,
-        days = getRepeatDays().toDayInfoList(),
-        enabled = true
+        days = repeatDays.toDayInfoList(),
+        enabled = enabled
     )
 }

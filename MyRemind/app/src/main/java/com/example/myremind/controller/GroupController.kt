@@ -3,11 +3,15 @@ package com.example.myremind.controller
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.example.myremind.model.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.myremind.model.Group
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
-class GroupController(
-    private val repo: MemoryGroupRepository
-) {
+class GroupController : ViewModel() {
     var lastError by mutableStateOf<String?>(null)
         private set
 
@@ -17,72 +21,180 @@ class GroupController(
     var groupsForCurrentUser by mutableStateOf<List<Group>>(emptyList())
         private set
 
+    var loading by mutableStateOf(false)
+        private set
+
     fun clearError() {
         lastError = null
     }
-
     fun refreshGroupsFor(userEmail: String) {
-        groupsForCurrentUser = repo.listGroupsForUser(userEmail)
-    }
+        if (userEmail.isBlank()) {
+            groupsForCurrentUser = emptyList()
+            return
+        }
 
+        loading = true
+        lastError = null
+
+        viewModelScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+
+                val snapshot = firestore
+                    .collection("groups")
+                    .whereArrayContains("members", userEmail)
+                    .get()
+                    .await()
+
+                groupsForCurrentUser = snapshot.toObjects(Group::class.java)
+
+                loading = false
+            } catch (e: Exception) {
+                loading = false
+                lastError = e.message ?: "Gagal mengambil daftar grup."
+            }
+        }
+    }
     fun createGroup(
         creatorEmail: String,
         groupName: String,
         description: String,
         onSuccess: (Group) -> Unit
     ) {
-        val result = repo.createGroup(
-            creatorEmail = creatorEmail,
-            name = groupName,
-            description = description
-        )
+        if (creatorEmail.isBlank() || groupName.isBlank()) {
+            lastError = "Creator dan nama grup wajib diisi."
+            return
+        }
 
-        result
-            .onSuccess { group ->
+        loading = true
+        lastError = null
+
+        viewModelScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+
+                val groupsRef = firestore.collection("groups")
+                val docRef = groupsRef.document() // auto id
+
+                val group = Group(
+                    id = docRef.id,
+                    groupName = groupName,
+                    description = description,
+                    members = listOf(creatorEmail)
+                )
+
+                docRef.set(group).await()
+
                 lastCreatedGroup = group
                 refreshGroupsFor(creatorEmail)
+                loading = false
                 onSuccess(group)
-            }
-            .onFailure { e ->
-                lastError = e.message ?: "Gagal membuat grup"
-            }
-    }
 
+            } catch (e: Exception) {
+                loading = false
+                lastError = e.message ?: "Gagal membuat grup."
+            }
+        }
+    }
     fun addUser(
         email: String,
-        groupId: Int,
+        groupId: String,
         currentUserEmail: String,
         onSuccess: (Group) -> Unit
     ) {
-        val result = repo.addUserToGroup(email, groupId)
-        result
-            .onSuccess { group ->
-                refreshGroupsFor(currentUserEmail)
-                onSuccess(group)
-            }
-            .onFailure { e ->
-                lastError = e.message ?: "Gagal menambah member"
-            }
-    }
+        if (email.isBlank() || groupId.isBlank()) {
+            lastError = "Email / groupId tidak valid."
+            return
+        }
 
+        loading = true
+        lastError = null
+
+        viewModelScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+
+                val docRef = firestore
+                    .collection("groups")
+                    .document(groupId)
+
+                // add email to array (no duplicates)
+                docRef.update("members", FieldValue.arrayUnion(email)).await()
+
+                // reload updated group
+                val updated = docRef.get().await().toObject(Group::class.java)
+
+                refreshGroupsFor(currentUserEmail)
+                loading = false
+
+                if (updated != null) onSuccess(updated)
+
+            } catch (e: Exception) {
+                loading = false
+                lastError = e.message ?: "Gagal menambah member."
+            }
+        }
+    }
     fun removeUser(
         email: String,
-        groupId: Int,
+        groupId: String,
         currentUserEmail: String,
         onSuccess: (Group) -> Unit
     ) {
-        val result = repo.removeUserFromGroup(email, groupId)
-        result
-            .onSuccess { group ->
-                refreshGroupsFor(currentUserEmail)
-                onSuccess(group)
-            }
-            .onFailure { e ->
-                lastError = e.message ?: "Gagal keluar dari grup"
-            }
-    }
+        if (email.isBlank() || groupId.isBlank()) {
+            lastError = "Email / groupId tidak valid."
+            return
+        }
 
-    fun getGroupDetail(groupId: Int): Group? {
-        return repo.getGroupById(groupId)
+        loading = true
+        lastError = null
+
+        viewModelScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+
+                val docRef = firestore
+                    .collection("groups")
+                    .document(groupId)
+
+                docRef.update("members", FieldValue.arrayRemove(email)).await()
+
+                val updated = docRef.get().await().toObject(Group::class.java)
+
+                refreshGroupsFor(currentUserEmail)
+                loading = false
+
+                if (updated != null) onSuccess(updated)
+
+            } catch (e: Exception) {
+                loading = false
+                lastError = e.message ?: "Gagal keluar dari grup."
+            }
+        }
+    }
+    fun getGroupDetail(groupId: String, onResult: (Group?) -> Unit) {
+        if (groupId.isBlank()) {
+            onResult(null)
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+
+                val group = firestore
+                    .collection("groups")
+                    .document(groupId)
+                    .get()
+                    .await()
+                    .toObject(Group::class.java)
+
+                onResult(group)
+
+            } catch (e: Exception) {
+                lastError = e.message ?: "Gagal mengambil detail grup."
+                onResult(null)
+            }
+        }
     }
 }

@@ -11,12 +11,10 @@ object NavRoute {
     const val GROUP = "group"
     const val ALARM_DELETE = "alarm_delete"
     const val EDIT_ALARM = "edit_alarm/{alarmId}"
-    fun editAlarmRoute(alarmId: Int): String {
-        return "edit_alarm/$alarmId"
-    }
+    fun editAlarmRoute(alarmId: String) = "edit_alarm/$alarmId"
     const val GROUP_CREATE = "group_create"
     const val GROUP_INFO_PATTERN = "group_info/{groupId}"
-    fun groupInfo(groupId: String) = "group_info/$groupId"
-    const val CHANGE_PASSWORD = "change_password/{emailArg}"
-    const val GROUP_ADD_MEMBER = "group_add_member"
+    const val GROUP_ADD_MEMBER_PATTERN = "group_add_member/{groupId}"
+    fun groupInfoRoute(groupId: String) = "group_info/$groupId"
+    fun groupAddMemberRoute(groupId: String) = "group_add_member/$groupId"
 }

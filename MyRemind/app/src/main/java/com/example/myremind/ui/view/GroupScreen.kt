@@ -1,6 +1,5 @@
 package com.example.myremind.ui.view
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,19 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myremind.model.Group
-import com.example.myremind.controller.GroupController
 
 private val CircleRed = Color(0xFFFF2B2B)
 
-data class GroupItem(
-    val id: String,
-    val name: String
-)
-
 @Composable
 fun GroupScreen(
-    groups: List<Group>, 
-    onGroupClick: (groupId: Int) -> Unit,
+    groups: List<Group>,
+    onGroupClick: (groupId: String) -> Unit,  // ✅ String
 
     onClickHome: () -> Unit,
     onClickAlarm: () -> Unit,
@@ -59,11 +52,10 @@ fun GroupScreen(
                 color = TextWhite,
                 fontSize = 36.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .padding(start = 24.dp, end = 24.dp, top = 28.dp, bottom = 20.dp)
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 28.dp, bottom = 20.dp)
             )
 
-            androidx.compose.foundation.lazy.LazyColumn(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
@@ -71,13 +63,11 @@ fun GroupScreen(
             ) {
                 items(
                     items = groups,
-                    key = { it.getGroupId() }
+                    key = { it.id }  // ✅ Firestore id
                 ) { group ->
                     GroupCard(
-                        name = group.getGroupName(),
-                        onClick = {
-                            onGroupClick(group.getGroupId())
-                        }
+                        name = group.groupName, // ✅ new field
+                        onClick = { onGroupClick(group.id) }
                     )
                 }
             }
@@ -114,7 +104,6 @@ fun GroupScreen(
     }
 }
 
-
 @Composable
 private fun GroupCard(
     name: String,
@@ -129,8 +118,7 @@ private fun GroupCard(
             .clickable { onClick() }
     ) {
         Row(
-            modifier = Modifier
-                .padding(horizontal = 18.dp, vertical = 16.dp),
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(

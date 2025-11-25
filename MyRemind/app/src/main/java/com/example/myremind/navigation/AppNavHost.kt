@@ -1,69 +1,33 @@
 package com.example.myremind.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myremind.ui.view.*
-import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import androidx.compose.runtime.LaunchedEffect
 import com.example.myremind.controller.*
 import com.example.myremind.model.*
 import com.example.myremind.ui.mapper.*
+import com.example.myremind.ui.view.*
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+
     val userController = remember { UserController() }
-    val groupRepository = remember { MemoryGroupRepository() }
-    val groupController = remember { GroupController(groupRepository) }
+    val groupController = remember { GroupController() }
+    val alarmController = remember { AlarmController() }
+
     var refreshFlag by remember { mutableStateOf(0) }
-    val alarmRepo = remember { MemoryAlarmRepository() }
-    val alarmController = remember { AlarmController(alarmRepo) }
-    val userGroupNames = groupController.groupsForCurrentUser.map { it.getGroupName() }
     fun refreshUI() { refreshFlag++ }
-
-    val days = listOf(
-        DayInfo("S", true),
-        DayInfo("M", true),
-        DayInfo("T", true),
-        DayInfo("W", true),
-        DayInfo("T", true),
-        DayInfo("F", true),
-        DayInfo("S", true),
-    )
-
-    val homeAlarms = List(4) {
-        AlarmEntry(
-            label = "Work",
-            time = "8:30",
-            ampm = "AM",
-            group = "GRUP 1",
-            days = days
-        )
-    }
-
-    val alarmTiles = List(6) { i ->
-        AlarmSmall(
-            id = i + 1,
-            label = "Work",
-            time = "8:30",
-            ampm = "AM",
-            days = days,
-            enabled = (i % 2 == 1)
-        )
-    }
 
     NavHost(
         navController = navController,
         startDestination = NavRoute.SIGNIN
     ) {
 
+        // ---------------- SIGN IN ----------------
         composable(NavRoute.SIGNIN) {
             val a = refreshFlag
 
@@ -73,8 +37,8 @@ fun AppNavHost() {
                         identifier = identifier,
                         password = password,
                         onSuccess = {
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
+                            navController.navigate(NavRoute.HOME) {
+                                popUpTo(NavRoute.SIGNIN) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
@@ -84,12 +48,12 @@ fun AppNavHost() {
                 onSignUp = {
                     userController.clearError()
                     userController.clearInfo()
-                    navController.navigate("signup")
+                    navController.navigate(NavRoute.SIGNUP)
                 },
                 onResetPassword = {
                     userController.clearError()
                     userController.clearInfo()
-                    navController.navigate(route = NavRoute.VERIFY)
+                    navController.navigate(NavRoute.VERIFY)
                 },
                 loading = userController.loading,
                 errorMessage = userController.lastError,
@@ -101,17 +65,17 @@ fun AppNavHost() {
             )
         }
 
+        // ---------------- SIGN UP ----------------
         composable(NavRoute.SIGNUP) {
             val refresh = refreshFlag
 
             SignUpScreen(
                 onBackToLogin = {
-                    navController.navigate(route = NavRoute.SIGNIN) {
-                        popUpTo(route = NavRoute.SIGNIN) { inclusive = true }
+                    navController.navigate(NavRoute.SIGNIN) {
+                        popUpTo(NavRoute.SIGNIN) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
-
                 onSubmitSignUp = { username, email, pass, verify ->
                     userController.signUp(
                         username = username,
@@ -119,8 +83,8 @@ fun AppNavHost() {
                         password = pass,
                         verifyPassword = verify,
                         onSuccess = {
-                            navController.navigate(route = NavRoute.SIGNIN) {
-                                popUpTo(route = NavRoute.SIGNIN) { inclusive = true }
+                            navController.navigate(NavRoute.SIGNIN) {
+                                popUpTo(NavRoute.SIGNIN) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
@@ -135,103 +99,83 @@ fun AppNavHost() {
             )
         }
 
+        // ---------------- VERIFY RESET PASSWORD ----------------
         composable(NavRoute.VERIFY) {
             LoginVerificationScreen(
                 loading = userController.loading,
                 errorMessage = userController.lastError,
                 onDismissError = { userController.clearError() },
                 onVerify = { identifier ->
-                        userController.resetPassword(identifier) { success -> if(success){
-                                navController.navigate(NavRoute.SIGNIN) {
-                                    popUpTo(NavRoute.VERIFY) { inclusive = true }
-                                    launchSingleTop = true
-                                }
+                    userController.resetPassword(identifier) { success ->
+                        if (success) {
+                            navController.navigate(NavRoute.SIGNIN) {
+                                popUpTo(NavRoute.VERIFY) { inclusive = true }
+                                launchSingleTop = true
                             }
                         }
+                    }
                 }
             )
         }
 
-//        composable(
-//            route = NavRoute.CHANGE_PASSWORD,
-//            arguments = listOf(
-//                navArgument("emailArg") { defaultValue = "" }
-//            )
-//        ) { backStackEntry ->
-//            val emailArg = backStackEntry.arguments?.getString("emailArg") ?: ""
-//
-//            ChangePasswordScreen(
-//                loading = userController.loading,
-//                errorMessage = userController.lastError,
-//                onDismissError = { userController.clearError() },
-//                onSubmit = { newPassword ->
-//                    userController.resetPassword(
-//                        email = emailArg,
-//                        newPassword = newPassword,
-//                        onDone = {
-//                            navController.navigate(NavRoute.SIGNIN) {
-//                                popUpTo(NavRoute.SIGNIN) { inclusive = true }
-//                                launchSingleTop = true
-//                            }
-//                        }
-//                    )
-//                }
-//            )
-//        }
-
+        // ---------------- HOME ----------------
         composable(NavRoute.HOME) {
-            val email = userController.currentUser?.getEmail() ?: ""
+            val email = userController.currentUser?.getEmail().orEmpty()
+
             LaunchedEffect(email) {
-                groupController.refreshGroupsFor(email)
+                if (email.isNotBlank()) {
+                    groupController.refreshGroupsFor(email)
+                }
             }
-            val joinedGroupIds = groupController.groupsForCurrentUser
-                .map { it.getGroupId() }
-            LaunchedEffect(joinedGroupIds) {
-                alarmController.refresh(joinedGroupIds)
+
+            // ✅ use property id instead of getGroupId()
+            val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
+            val joinedKey = joinedGroupIds.joinToString(",")
+
+            LaunchedEffect(joinedKey) {
+                alarmController.loadAlarms(joinedGroupIds)
             }
+
+
             val homeAlarms = alarmController.alarmList.map { it.toAlarmEntry() }
 
             HomeScreen(
                 username = userController.currentUser?.getUsername() ?: "User",
                 alarms = homeAlarms,
-                onClickHome = {  },
+                onClickHome = { },
                 onClickAlarm = {
-                    navController.navigate(NavRoute.ALARM) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.ALARM) { launchSingleTop = true }
                 },
                 onClickAdd = {
-                    navController.navigate(NavRoute.ADD) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.ADD) { launchSingleTop = true }
                 },
                 onClickGroup = {
-                    navController.navigate(NavRoute.GROUP) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.GROUP) { launchSingleTop = true }
                 },
                 onClickProfile = {
-                    navController.navigate(NavRoute.PROFILE) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
                 },
-                onClickBell = {}
+                onClickBell = { }
             )
         }
 
+        // ---------------- ALARM LIST ----------------
         composable(NavRoute.ALARM) {
+            val email = userController.currentUser?.getEmail().orEmpty()
 
-            val email = userController.currentUser?.getEmail() ?: ""
             LaunchedEffect(email) {
-                groupController.refreshGroupsFor(email)
+                if (email.isNotBlank()) {
+                    groupController.refreshGroupsFor(email)
+                }
             }
 
-            val joinedGroupIds = groupController.groupsForCurrentUser
-                .map { it.getGroupId() }
+            val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
+            val joinedKey = joinedGroupIds.joinToString(",")
 
-            LaunchedEffect(joinedGroupIds) {
-                alarmController.refresh(joinedGroupIds)
+            LaunchedEffect(joinedKey) {
+                alarmController.loadAlarms(joinedGroupIds)
             }
+
 
             val alarmTiles = alarmController.alarmList.map { it.toAlarmSmall() }
 
@@ -243,26 +187,18 @@ fun AppNavHost() {
                         popUpTo(NavRoute.HOME) { inclusive = false }
                     }
                 },
-                onClickAlarm = {  },
+                onClickAlarm = { },
                 onClickAdd = {
-                    navController.navigate(NavRoute.ADD) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.ADD) { launchSingleTop = true }
                 },
                 onClickGroup = {
-                    navController.navigate(NavRoute.GROUP) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.GROUP) { launchSingleTop = true }
                 },
                 onClickProfile = {
-                    navController.navigate(NavRoute.PROFILE) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
                 },
                 onClickDelete = {
-                    navController.navigate(NavRoute.ALARM_DELETE) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.ALARM_DELETE) { launchSingleTop = true }
                 },
                 onAlarmClick = { alarmId ->
                     navController.navigate(NavRoute.editAlarmRoute(alarmId)) {
@@ -272,33 +208,21 @@ fun AppNavHost() {
             )
         }
 
+        // ---------------- ADD ALARM ----------------
         composable(NavRoute.ADD) {
-
-            val email = userController.currentUser?.getEmail() ?: ""
+            val email = userController.currentUser?.getEmail().orEmpty()
 
             LaunchedEffect(email) {
-                groupController.refreshGroupsFor(email)
+                if (email.isNotBlank()) groupController.refreshGroupsFor(email)
             }
 
-            val groupChoices: List<SelectableGroupOption> = run {
+            val groupChoices = run {
                 val personal = listOf(
-                    SelectableGroupOption(
-                        label = "Personal",
-                        ownerType = "personal",
-                        groupId = null,
-                        groupName = null
-                    )
+                    SelectableGroupOption("Personal","personal",null,null)
                 )
-
                 val fromGroups = groupController.groupsForCurrentUser.map { g ->
-                    SelectableGroupOption(
-                        label = g.getGroupName(),
-                        ownerType = "group",
-                        groupId = g.getGroupId(),
-                        groupName = g.getGroupName()
-                    )
+                    SelectableGroupOption(g.groupName, "group", g.id, g.groupName)
                 }
-
                 personal + fromGroups
             }
 
@@ -308,40 +232,47 @@ fun AppNavHost() {
                 onSave = { form ->
 
                     val target = form.selectedTarget
+                    val ownerType = target.ownerType.lowercase()
 
-                    alarmController.createAlarm(
-                        title = form.title,
+                    // validasi group
+                    if (ownerType == "group" && target.groupId.isNullOrBlank()) {
+                        alarmController.clearError()
+                        // kalau mau pesan spesifik, tambah setError helper di controller
+                        return@AddAlarmScreen
+                    }
+
+                    val alarm = Alarm(
+                        id = "",
+                        title = form.title.trim(),
+                        repeatDays = form.days,
                         hour = form.hour,
                         minute = form.minute,
-                        repeatDays = form.days,
-                        ownerType = target.ownerType,
+                        ownerType = ownerType,
                         groupId = target.groupId,
-                        groupName = target.groupName,
-                        onSuccess = {
-
-                            val joinedGroupIdsAfter = groupController.groupsForCurrentUser
-                                .map { it.getGroupId() }
-
-                            alarmController.refresh(joinedGroupIdsAfter)
-
-                            navController.navigate(NavRoute.ALARM) {
-                                popUpTo(NavRoute.ALARM) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
+                        groupName = target.groupName
                     )
+
+                    val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
+
+                    alarmController.saveAlarm(alarm) {
+                        alarmController.loadAlarms(joinedGroupIds)
+                        navController.navigate(NavRoute.ALARM) {
+                            popUpTo(NavRoute.ADD) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 }
             )
         }
 
-
-
+        // ---------------- PROFILE ----------------
         composable(NavRoute.PROFILE) {
-            val username = userController.currentUser?.getUsername()
-            val currentEmail = userController.currentUser?.getEmail()
+            val username = userController.currentUser?.getUsername().orEmpty()
+            val currentEmail = userController.currentUser?.getEmail().orEmpty()
+
             ProfileScreen(
-                username = username.toString(),
-                email = currentEmail.toString(),
+                username = username,
+                email = currentEmail,
                 onClickHome = {
                     navController.navigate(NavRoute.HOME) {
                         launchSingleTop = true
@@ -355,28 +286,23 @@ fun AppNavHost() {
                     }
                 },
                 onClickAdd = {
-                    navController.navigate(NavRoute.ADD){
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.ADD) { launchSingleTop = true }
                 },
                 onClickGroup = {
-                    navController.navigate(NavRoute.GROUP) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.GROUP) { launchSingleTop = true }
                 },
-                onClickProfile = {
-                },
+                onClickProfile = { },
                 onSignOut = {
-                    userController.signOut {  }
-                    navController.navigate(NavRoute.SIGNIN) {
-                        launchSingleTop = true
-                    }
+                    userController.signOut { }
+                    navController.navigate(NavRoute.SIGNIN) { launchSingleTop = true }
                 }
             )
         }
 
+        // ---------------- GROUP LIST ----------------
         composable(NavRoute.GROUP) {
-            val currentEmail = userController.currentUser?.getEmail() ?:""
+            val currentEmail = userController.currentUser?.getEmail().orEmpty()
+
             LaunchedEffect(currentEmail) {
                 if (currentEmail.isNotBlank()) {
                     groupController.refreshGroupsFor(currentEmail)
@@ -386,7 +312,7 @@ fun AppNavHost() {
             GroupScreen(
                 groups = groupController.groupsForCurrentUser,
                 onGroupClick = { groupId ->
-                    navController.navigate("group_info/$groupId") {
+                    navController.navigate(NavRoute.groupInfoRoute(groupId)) {
                         launchSingleTop = true
                     }
                 },
@@ -400,11 +326,9 @@ fun AppNavHost() {
                     navController.navigate(NavRoute.ALARM) { launchSingleTop = true }
                 },
                 onClickAddCenter = {
-                    navController.navigate(NavRoute.ADD){
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.ADD) { launchSingleTop = true }
                 },
-                onClickGroup = {  },
+                onClickGroup = { },
                 onClickProfile = {
                     navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
                 },
@@ -414,28 +338,29 @@ fun AppNavHost() {
             )
         }
 
-
+        // ---------------- ALARM DELETE ----------------
         composable(NavRoute.ALARM_DELETE) {
+            val email = userController.currentUser?.getEmail().orEmpty()
 
-            val email = userController.currentUser?.getEmail() ?: ""
             LaunchedEffect(email) {
-                groupController.refreshGroupsFor(email)
+                if (email.isNotBlank()) {
+                    groupController.refreshGroupsFor(email)
+                }
             }
 
-            val joinedGroupIds = groupController.groupsForCurrentUser
-                .map { it.getGroupId() }
+            val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
+            val joinedKey = joinedGroupIds.joinToString(",")
 
-            LaunchedEffect(joinedGroupIds) {
-                alarmController.refresh(joinedGroupIds)
+            LaunchedEffect(joinedKey) {
+                alarmController.loadAlarms(joinedGroupIds)
             }
+
 
             val alarmTilesForDelete = alarmController.alarmList.map { it.toAlarmSmall() }
 
             AlarmDeleteScreen(
                 alarms = alarmTilesForDelete,
-                onBack = {
-                    navController.popBackStack()
-                },
+                onBack = { navController.popBackStack() },
                 onClickHome = {
                     navController.navigate(NavRoute.HOME) {
                         launchSingleTop = true
@@ -449,51 +374,39 @@ fun AppNavHost() {
                     }
                 },
                 onClickAdd = {
-                    navController.navigate(NavRoute.ADD) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.ADD) { launchSingleTop = true }
                 },
                 onClickGroup = {
-                    navController.navigate(NavRoute.GROUP) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.GROUP) { launchSingleTop = true }
                 },
                 onClickProfile = {
-                    navController.navigate(NavRoute.PROFILE) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
                 },
-                onDeleteSelected = { selectedIds ->
-                    alarmController.deleteAlarms(
-                        ids = selectedIds,
-                        joinedGroupIdsAfterDelete = joinedGroupIds,
-                        onSuccess = {
-                            navController.navigate(NavRoute.ALARM) {
-                                popUpTo(NavRoute.ALARM) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    )
+                onDeleteSelected = { selectedIds -> val alarmsToDelete = selectedIds.mapNotNull { id ->
+                    alarmController.getAlarmById(id)
+                }
+                    alarmsToDelete.forEach { alarm ->
+                        alarmController.deleteAlarm(alarm)
+                    }
                 }
             )
         }
 
-
+        // ---------------- EDIT ALARM ----------------
         composable(
             route = NavRoute.EDIT_ALARM,
-            arguments = listOf(
-                navArgument("alarmId") { type = NavType.IntType }
-            )
+            arguments = listOf(navArgument("alarmId") { type = NavType.StringType })
         ) { backStackEntry ->
 
-            val alarmIdArg = backStackEntry.arguments?.getInt("alarmId") ?: -1
+            val alarmIdArg = backStackEntry.arguments?.getString("alarmId") ?: ""
             val alarmToEdit = alarmController.getAlarmById(alarmIdArg)
+
             if (alarmToEdit == null) {
-                LaunchedEffect(Unit) {
-                    navController.popBackStack()
-                }
+                LaunchedEffect(Unit) { navController.popBackStack() }
                 return@composable
             }
+
+            // ✅ groupChoices built with properties
             val groupChoices: List<SelectableGroupOption> = buildList {
                 add(
                     SelectableGroupOption(
@@ -506,10 +419,10 @@ fun AppNavHost() {
                 groupController.groupsForCurrentUser.forEach { g ->
                     add(
                         SelectableGroupOption(
-                            label = g.getGroupName(),
+                            label = g.groupName,
                             ownerType = "group",
-                            groupId = g.getGroupId(),
-                            groupName = g.getGroupName()
+                            groupId = g.id,
+                            groupName = g.groupName
                         )
                     )
                 }
@@ -520,76 +433,78 @@ fun AppNavHost() {
                 groupChoices = groupChoices,
                 onBack = { navController.popBackStack() },
                 onSaveChanges = { editedForm ->
-                    alarmController.EditDetailAlarm(
-                        id = alarmIdArg,
+                    val target = editedForm.selectedTarget
+
+                    val editedAlarm = alarmToEdit.copy(
                         title = editedForm.title,
-                        days = editedForm.days,
+                        repeatDays = editedForm.days,
                         hour = editedForm.hour,
                         minute = editedForm.minute,
-                        ownerType = editedForm.selectedTarget.ownerType,
-                        groupId = editedForm.selectedTarget.groupId,
-                        groupName = editedForm.selectedTarget.groupName,
-                        onSuccess = {
-                            val joinedGroupIdsAfter = groupController.groupsForCurrentUser
-                                .map { it.getGroupId() }
-                            alarmController.refresh(joinedGroupIdsAfter)
-                            navController.navigate(NavRoute.ALARM) {
-                                popUpTo(NavRoute.ALARM) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
+                        ownerType = target.ownerType,
+                        groupId = target.groupId,
+                        groupName = target.groupName
                     )
+                    val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
+
+                    alarmController.saveAlarm(editedAlarm) {
+                        alarmController.loadAlarms(joinedGroupIds)
+                        navController.navigate(NavRoute.ALARM) {
+                            popUpTo(NavRoute.ALARM) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 }
             )
         }
 
+        // ---------------- GROUP INFO ----------------
         composable(
             route = NavRoute.GROUP_INFO_PATTERN,
-            arguments = listOf(
-                navArgument("groupId") { type = NavType.IntType }
-            )
-
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getInt("groupId") ?: -1
-            val groupEntity = groupController.getGroupDetail(groupId)
-            val uiDetail = if (groupEntity != null) {
-                val membersEmails = groupEntity.getMembers()
 
-                GroupDetail(
-                    id = groupEntity.getGroupId().toString(),
-                    name = groupEntity.getGroupName(),
-                    description = groupEntity.getDescription(),
-                    members = membersEmails.mapIndexed { index, email ->
-                        GroupMember(
-                            name = email,
-                            role = if (index == 0) "Admin" else null
-                        )
-                    }
-                )
-            } else {
-                GroupDetail(
-                    id = groupId.toString(),
-                    name = "Unknown Group",
-                    description = "",
-                    members = emptyList()
-                )
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+            val currentEmail = userController.currentUser?.getEmail().orEmpty()
+
+            var groupDetail by remember { mutableStateOf<GroupDetail?>(null) }
+
+            LaunchedEffect(groupId) {
+                groupController.getGroupDetail(groupId) { group ->
+                    groupDetail =
+                        if (group != null) {
+                            GroupDetail(
+                                id = group.id,
+                                name = group.groupName,
+                                description = group.description,
+                                members = group.members.mapIndexed { index, email ->
+                                    GroupMember(
+                                        name = email,
+                                        role = if (index == 0) "Admin" else null
+                                    )
+                                }
+                            )
+                        } else null
+                }
             }
 
-            val currentEmail = userController.currentUser?.getEmail().orEmpty()
+            val uiDetail = groupDetail ?: GroupDetail(
+                id = groupId,
+                name = "Unknown Group",
+                description = "",
+                members = emptyList()
+            )
 
             GroupInfoScreen(
                 group = uiDetail,
                 onBack = { navController.popBackStack() },
-                onMemberClick = { member ->
-
-                },
+                onMemberClick = { },
                 onAddMember = {
-                    navController.navigate(NavRoute.GROUP_ADD_MEMBER) {
+                    navController.navigate(NavRoute.groupAddMemberRoute(groupId)) {
                         launchSingleTop = true
                     }
                 },
                 onLeaveGroup = {
-                    if (groupId != -1 && currentEmail.isNotBlank()) {
+                    if (groupId.isNotBlank() && currentEmail.isNotBlank()) {
                         groupController.removeUser(
                             email = currentEmail,
                             groupId = groupId,
@@ -605,11 +520,12 @@ fun AppNavHost() {
             )
         }
 
+        // ---------------- GROUP CREATE ----------------
         composable(NavRoute.GROUP_CREATE) {
             val creatorEmail = userController.currentUser?.getEmail().orEmpty()
 
             GroupCreateScreen(
-                loading = false,
+                loading = groupController.loading,
                 errorMessage = groupController.lastError,
                 onDismissError = { groupController.clearError() },
                 onBack = { navController.popBackStack() },
@@ -618,8 +534,7 @@ fun AppNavHost() {
                         creatorEmail = creatorEmail,
                         groupName = groupName,
                         description = description
-                    ) {
-                        _newgroup ->
+                    ) { _ ->
                         navController.navigate(NavRoute.GROUP) {
                             popUpTo(NavRoute.GROUP) { inclusive = true }
                             launchSingleTop = true
@@ -629,28 +544,32 @@ fun AppNavHost() {
             )
         }
 
-        composable(NavRoute.GROUP_ADD_MEMBER) {
-            val currentUserEmail = userController.currentUser?.getEmail().orEmpty()
-            val currentGroup = groupController.lastCreatedGroup
-                ?: groupController.groupsForCurrentUser.lastOrNull()
+        // ---------------- GROUP ADD MEMBER ----------------
+        composable(
+            route = NavRoute.GROUP_ADD_MEMBER_PATTERN,
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+        ) { backStackEntry ->
 
-            val groupId = currentGroup?.getGroupId() ?: -1
-            val groupName = currentGroup?.getGroupName() ?: "Unknown Group"
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+            val currentUserEmail = userController.currentUser?.getEmail().orEmpty()
+
+            val groupName = groupController.groupsForCurrentUser
+                .firstOrNull { it.id == groupId }
+                ?.groupName ?: "Group"
+
             GroupAddMemberScreen(
                 groupName = groupName,
-                loading = false,
+                loading = groupController.loading,
                 errorMessage = groupController.lastError,
                 onDismissError = { groupController.clearError() },
-                onBack = {
-                    navController.popBackStack()
-                },
+                onBack = { navController.popBackStack() },
                 onAddMember = { emailToAdd ->
-                    if (groupId != -1 && currentUserEmail.isNotBlank()) {
+                    if (groupId.isNotBlank() && currentUserEmail.isNotBlank()) {
                         groupController.addUser(
                             email = emailToAdd,
                             groupId = groupId,
                             currentUserEmail = currentUserEmail
-                        ) { updatedGroup ->
+                        ) { _ ->
                             groupController.refreshGroupsFor(currentUserEmail)
                             navController.popBackStack()
                         }
@@ -658,6 +577,5 @@ fun AppNavHost() {
                 }
             )
         }
-
     }
 }

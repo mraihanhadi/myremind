@@ -10,12 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,12 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
-import com.example.myremind.model.AddAlarmForm
-import com.example.myremind.model.SelectableGroupOption
-import com.example.myremind.model.EditableAlarmData
 
 data class AlarmSmall(
-    val id: Int,
+    val id: String,
     val label: String,
     val time: String,
     val ampm: String,
@@ -46,14 +38,13 @@ fun AlarmScreen(
     onClickGroup: () -> Unit,
     onClickProfile: () -> Unit,
     onClickDelete: () -> Unit,
-    onAlarmClick: (Int) -> Unit
+    onAlarmClick: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(ScreenBlack)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -92,7 +83,6 @@ fun AlarmScreen(
                 }
             }
 
-
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier
@@ -111,10 +101,8 @@ fun AlarmScreen(
             }
         }
 
-
         BottomBarWithFabSelectable(
-            modifier = Modifier
-                .align(Alignment.BottomCenter),
+            modifier = Modifier.align(Alignment.BottomCenter),
             selectedTab = BottomTab.ALARM,
             onClickHome = onClickHome,
             onClickAlarm = onClickAlarm,
@@ -124,7 +112,6 @@ fun AlarmScreen(
         )
     }
 }
-
 
 @Composable
 fun AlarmGridCard(
@@ -141,10 +128,8 @@ fun AlarmGridCard(
             .clickable { onClick() }
     ) {
         Column(
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 20.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
-
             Text(
                 text = alarm.label,
                 color = TextSoft,
@@ -154,10 +139,7 @@ fun AlarmGridCard(
 
             Spacer(Modifier.height(16.dp))
 
-
-            Row(
-                verticalAlignment = Alignment.Bottom
-            ) {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = alarm.time,
                     color = TextWhite,
@@ -177,28 +159,22 @@ fun AlarmGridCard(
 
             Spacer(Modifier.height(16.dp))
 
-
             DaysRowSmall(days = alarm.days)
 
             Spacer(Modifier.height(16.dp))
 
-
             AlarmToggle(
                 checked = alarm.enabled,
-                onCheckedChange = {  }
+                onCheckedChange = { }
             )
         }
     }
 }
 
-
 @Composable
 fun DaysRowSmall(days: List<DayInfo>) {
     Column {
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             days.forEach { day ->
                 Box(
                     modifier = Modifier.width(18.dp),
@@ -208,9 +184,7 @@ fun DaysRowSmall(days: List<DayInfo>) {
                         modifier = Modifier
                             .size(6.dp)
                             .clip(CircleShape)
-                            .background(
-                                if (day.active) AccentYellow else Color.Transparent
-                            )
+                            .background(if (day.active) AccentYellow else Color.Transparent)
                     )
                 }
             }
@@ -218,10 +192,7 @@ fun DaysRowSmall(days: List<DayInfo>) {
 
         Spacer(Modifier.height(8.dp))
 
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             days.forEach { day ->
                 Text(
                     text = day.letter,
@@ -235,7 +206,6 @@ fun DaysRowSmall(days: List<DayInfo>) {
         }
     }
 }
-
 
 @Composable
 fun AlarmToggle(

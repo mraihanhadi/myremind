@@ -26,15 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.remember
 
-
-
-
-
-
-
-
-
-
 @Composable
 fun GroupAddMemberScreen(
     groupName: String,

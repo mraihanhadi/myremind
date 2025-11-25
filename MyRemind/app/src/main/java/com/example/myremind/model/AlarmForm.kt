@@ -4,7 +4,7 @@ package com.example.myremind.model
 data class SelectableGroupOption(
     val label: String,
     val ownerType: String,
-    val groupId: Int?,
+    val groupId: String?,
     val groupName: String?
 )
 

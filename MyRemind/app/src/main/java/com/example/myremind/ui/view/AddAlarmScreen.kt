@@ -255,7 +255,7 @@ fun AddAlarmScreen(
 }
 
 @Composable
-private fun AppInputPill(
+fun AppInputPill(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     placeholder: String,
@@ -292,7 +292,7 @@ private fun AppInputPill(
 }
 
 @Composable
-private fun PillButtonField(
+fun PillButtonField(
     text: String,
     trailing: (@Composable () -> Unit)? = null,
     onClick: () -> Unit
@@ -324,7 +324,7 @@ private fun PillButtonField(
 }
 
 @Composable
-private fun DaysSelector(
+fun DaysSelector(
     days: List<Boolean>,
     onToggle: (Int) -> Unit
 ) {
@@ -377,7 +377,7 @@ private fun DaysSelector(
 }
 
 @Composable
-private fun GroupPickerField(
+fun GroupPickerField(
     selectedLabel: String,
     onClick: () -> Unit
 ) {
