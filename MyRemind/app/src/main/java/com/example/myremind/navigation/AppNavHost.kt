@@ -121,7 +121,7 @@ fun AppNavHost() {
 
         // ---------------- HOME ----------------
         composable(NavRoute.HOME) {
-            val email = userController.currentUser?.getEmail().orEmpty()
+            val email = userController.currentUser?.email.orEmpty()
 
             LaunchedEffect(email) {
                 if (email.isNotBlank()) {
@@ -141,7 +141,7 @@ fun AppNavHost() {
             val homeAlarms = alarmController.alarmList.map { it.toAlarmEntry() }
 
             HomeScreen(
-                username = userController.currentUser?.getUsername() ?: "User",
+                username = userController.currentUser?.username ?: "User",
                 alarms = homeAlarms,
                 onClickHome = { },
                 onClickAlarm = {
@@ -162,7 +162,7 @@ fun AppNavHost() {
 
         // ---------------- ALARM LIST ----------------
         composable(NavRoute.ALARM) {
-            val email = userController.currentUser?.getEmail().orEmpty()
+            val email = userController.currentUser?.email.orEmpty()
 
             LaunchedEffect(email) {
                 if (email.isNotBlank()) {
@@ -214,7 +214,7 @@ fun AppNavHost() {
 
         // ---------------- ADD ALARM ----------------
         composable(NavRoute.ADD) {
-            val email = userController.currentUser?.getEmail().orEmpty()
+            val email = userController.currentUser?.email.orEmpty()
 
             LaunchedEffect(email) {
                 if (email.isNotBlank()) groupController.refreshGroupsFor(email)
@@ -273,8 +273,8 @@ fun AppNavHost() {
 
         // ---------------- PROFILE ----------------
         composable(NavRoute.PROFILE) {
-            val username = userController.currentUser?.getUsername().orEmpty()
-            val currentEmail = userController.currentUser?.getEmail().orEmpty()
+            val username = userController.currentUser?.username.orEmpty()
+            val currentEmail = userController.currentUser?.email.orEmpty()
 
             ProfileScreen(
                 username = username,
@@ -307,7 +307,7 @@ fun AppNavHost() {
 
         // ---------------- GROUP LIST ----------------
         composable(NavRoute.GROUP) {
-            val currentEmail = userController.currentUser?.getEmail().orEmpty()
+            val currentEmail = userController.currentUser?.email.orEmpty()
 
             LaunchedEffect(currentEmail) {
                 if (currentEmail.isNotBlank()) {
@@ -346,7 +346,7 @@ fun AppNavHost() {
 
         // ---------------- ALARM DELETE ----------------
         composable(NavRoute.ALARM_DELETE) {
-            val email = userController.currentUser?.getEmail().orEmpty()
+            val email = userController.currentUser?.email.orEmpty()
 
             LaunchedEffect(email) {
                 if (email.isNotBlank()) {
@@ -472,7 +472,7 @@ fun AppNavHost() {
         ) { backStackEntry ->
 
             val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
-            val currentEmail = userController.currentUser?.getEmail().orEmpty()
+            val currentEmail = userController.currentUser?.email.orEmpty()
 
             var groupDetail by remember { mutableStateOf<GroupDetail?>(null) }
 
@@ -530,7 +530,7 @@ fun AppNavHost() {
 
         // ---------------- GROUP CREATE ----------------
         composable(NavRoute.GROUP_CREATE) {
-            val creatorEmail = userController.currentUser?.getEmail().orEmpty()
+            val creatorEmail = userController.currentUser?.email.orEmpty()
 
             GroupCreateScreen(
                 loading = groupController.loading,
@@ -559,7 +559,7 @@ fun AppNavHost() {
         ) { backStackEntry ->
 
             val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
-            val currentUserEmail = userController.currentUser?.getEmail().orEmpty()
+            val currentUserEmail = userController.currentUser?.email.orEmpty()
 
             val groupName = groupController.groupsForCurrentUser
                 .firstOrNull { it.id == groupId }
