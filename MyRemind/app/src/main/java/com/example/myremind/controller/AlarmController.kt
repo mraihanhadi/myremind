@@ -16,9 +16,6 @@ class AlarmController : ViewModel() {
     var alarmList by mutableStateOf<List<Alarm>>(emptyList())
         private set
 
-    var selectedAlarm by mutableStateOf<Alarm?>(null)
-        private set
-
     var loading by mutableStateOf(false)
         private set
 
@@ -40,7 +37,7 @@ class AlarmController : ViewModel() {
             try {
                 val fs = FirebaseFirestore.getInstance()
 
-                // pilih collection yang benar
+                
                 val alarmsRef = when (alarm.ownerType) {
                     "personal" -> {
                         fs.collection("users")
@@ -61,9 +58,9 @@ class AlarmController : ViewModel() {
                     else -> throw IllegalArgumentException("ownerType tidak valid.")
                 }
 
-                // ✅ kalau id kosong -> doc baru auto id
+                
                 val docRef = if (alarm.id.isBlank()) {
-                    alarmsRef.document() // auto-ID valid
+                    alarmsRef.document() 
                 } else {
                     alarmsRef.document(alarm.id)
                 }
@@ -89,7 +86,7 @@ class AlarmController : ViewModel() {
             try {
                 val fs = FirebaseFirestore.getInstance()
 
-                // personal alarms
+                
                 val personalSnap = fs.collection("users")
                     .document(uid)
                     .collection("alarms")
@@ -99,7 +96,7 @@ class AlarmController : ViewModel() {
                 val personalAlarms = personalSnap.documents
                     .mapNotNull { it.toObject(Alarm::class.java) }
 
-                // group alarms
+                
                 val groupAlarms = mutableListOf<Alarm>()
                 for (gid in joinedGroupIds) {
                     val groupSnap = fs.collection("groups")
@@ -159,6 +156,5 @@ class AlarmController : ViewModel() {
         }
     }
     fun getAlarmById(id: String): Alarm? = alarmList.firstOrNull { it.id == id }
-
 }
 

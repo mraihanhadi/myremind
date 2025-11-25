@@ -53,7 +53,7 @@ class UserController() : ViewModel() {
                 if(!snapshot.exists()){
                     throw Exception("Data user tidak ditemukan.")
                 }
-                val user = User(snapshot.getString("email")?:"", snapshot.getString("username")?:"", password)
+                val user = User(snapshot.getString("email")?:"", snapshot.getString("username")?:"")
                 currentUser = user
                 loading = false
                 onSuccess()
@@ -87,7 +87,6 @@ class UserController() : ViewModel() {
                 val auth = FirebaseAuth.getInstance()
                 val authResult = auth.createUserWithEmailAndPassword(email,password).await()
                 val firebaseUser = authResult.user?: throw Exception("Gagal Membuat Akun")
-                val user = User(email, username, password)
                 val firestore = FirebaseFirestore.getInstance()
                 val userData = mapOf("email" to email, "username" to username)
                 firestore.collection("users").document(firebaseUser.uid).set(userData).await()

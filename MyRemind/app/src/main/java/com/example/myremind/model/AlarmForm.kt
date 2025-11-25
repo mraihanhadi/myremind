@@ -1,4 +1,3 @@
-// file: model/AlarmForm.kt
 package com.example.myremind.model
 
 data class SelectableGroupOption(

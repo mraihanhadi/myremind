@@ -100,7 +100,7 @@ fun LoginScreen(
             if (infoMessage != null) {
                 Text(
                     text = infoMessage,
-                    color = Color(0xFF81C784), // soft green
+                    color = Color(0xFF81C784),
                     fontSize = 16.sp,
                     modifier = Modifier
                         .padding(bottom = 8.dp)

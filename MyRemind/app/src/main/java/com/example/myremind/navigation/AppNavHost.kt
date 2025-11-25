@@ -27,7 +27,7 @@ fun AppNavHost() {
         startDestination = NavRoute.SIGNIN
     ) {
 
-        // ---------------- SIGN IN ----------------
+
         composable(NavRoute.SIGNIN) {
             val a = refreshFlag
 
@@ -65,7 +65,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- SIGN UP ----------------
+
         composable(NavRoute.SIGNUP) {
             val refresh = refreshFlag
 
@@ -99,7 +99,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- VERIFY RESET PASSWORD ----------------
+
         composable(NavRoute.VERIFY) {
             LoginVerificationScreen(
                 loading = userController.loading,
@@ -118,7 +118,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- HOME ----------------
+
         composable(NavRoute.HOME) {
             val email = userController.currentUser?.getEmail().orEmpty()
 
@@ -128,7 +128,7 @@ fun AppNavHost() {
                 }
             }
 
-            // ✅ use property id instead of getGroupId()
+
             val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
             val joinedKey = joinedGroupIds.joinToString(",")
 
@@ -159,7 +159,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- ALARM LIST ----------------
+
         composable(NavRoute.ALARM) {
             val email = userController.currentUser?.getEmail().orEmpty()
 
@@ -208,7 +208,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- ADD ALARM ----------------
+
         composable(NavRoute.ADD) {
             val email = userController.currentUser?.getEmail().orEmpty()
 
@@ -234,10 +234,10 @@ fun AppNavHost() {
                     val target = form.selectedTarget
                     val ownerType = target.ownerType.lowercase()
 
-                    // validasi group
+
                     if (ownerType == "group" && target.groupId.isNullOrBlank()) {
                         alarmController.clearError()
-                        // kalau mau pesan spesifik, tambah setError helper di controller
+
                         return@AddAlarmScreen
                     }
 
@@ -265,7 +265,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- PROFILE ----------------
+
         composable(NavRoute.PROFILE) {
             val username = userController.currentUser?.getUsername().orEmpty()
             val currentEmail = userController.currentUser?.getEmail().orEmpty()
@@ -299,7 +299,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- GROUP LIST ----------------
+
         composable(NavRoute.GROUP) {
             val currentEmail = userController.currentUser?.getEmail().orEmpty()
 
@@ -338,7 +338,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- ALARM DELETE ----------------
+
         composable(NavRoute.ALARM_DELETE) {
             val email = userController.currentUser?.getEmail().orEmpty()
 
@@ -392,7 +392,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- EDIT ALARM ----------------
+
         composable(
             route = NavRoute.EDIT_ALARM,
             arguments = listOf(navArgument("alarmId") { type = NavType.StringType })
@@ -406,7 +406,7 @@ fun AppNavHost() {
                 return@composable
             }
 
-            // ✅ groupChoices built with properties
+
             val groupChoices: List<SelectableGroupOption> = buildList {
                 add(
                     SelectableGroupOption(
@@ -457,7 +457,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- GROUP INFO ----------------
+
         composable(
             route = NavRoute.GROUP_INFO_PATTERN,
             arguments = listOf(navArgument("groupId") { type = NavType.StringType })
@@ -520,7 +520,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- GROUP CREATE ----------------
+
         composable(NavRoute.GROUP_CREATE) {
             val creatorEmail = userController.currentUser?.getEmail().orEmpty()
 
@@ -544,7 +544,7 @@ fun AppNavHost() {
             )
         }
 
-        // ---------------- GROUP ADD MEMBER ----------------
+
         composable(
             route = NavRoute.GROUP_ADD_MEMBER_PATTERN,
             arguments = listOf(navArgument("groupId") { type = NavType.StringType })

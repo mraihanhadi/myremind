@@ -28,7 +28,7 @@ private val CircleRed = Color(0xFFFF2B2B)
 @Composable
 fun GroupScreen(
     groups: List<Group>,
-    onGroupClick: (groupId: String) -> Unit,  // ✅ String
+    onGroupClick: (groupId: String) -> Unit,
 
     onClickHome: () -> Unit,
     onClickAlarm: () -> Unit,
@@ -63,10 +63,10 @@ fun GroupScreen(
             ) {
                 items(
                     items = groups,
-                    key = { it.id }  // ✅ Firestore id
+                    key = { it.id }
                 ) { group ->
                     GroupCard(
-                        name = group.groupName, // ✅ new field
+                        name = group.groupName,
                         onClick = { onGroupClick(group.id) }
                     )
                 }

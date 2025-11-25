@@ -74,7 +74,7 @@ class GroupController : ViewModel() {
                 val firestore = FirebaseFirestore.getInstance()
 
                 val groupsRef = firestore.collection("groups")
-                val docRef = groupsRef.document() // auto id
+                val docRef = groupsRef.document() 
 
                 val group = Group(
                     id = docRef.id,
@@ -118,10 +118,10 @@ class GroupController : ViewModel() {
                     .collection("groups")
                     .document(groupId)
 
-                // add email to array (no duplicates)
+                
                 docRef.update("members", FieldValue.arrayUnion(email)).await()
 
-                // reload updated group
+                
                 val updated = docRef.get().await().toObject(Group::class.java)
 
                 refreshGroupsFor(currentUserEmail)

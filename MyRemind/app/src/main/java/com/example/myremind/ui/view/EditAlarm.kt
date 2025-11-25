@@ -24,19 +24,19 @@ import androidx.compose.ui.unit.sp
 import java.util.Calendar
 import com.example.myremind.model.AddAlarmForm
 import com.example.myremind.model.SelectableGroupOption
-import com.example.myremind.model.Alarm   // ✅ pakai Alarm model baru
+import com.example.myremind.model.Alarm
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditAlarmScreen(
-    alarm: Alarm, // ✅ CHANGED
+    alarm: Alarm,
     groupChoices: List<SelectableGroupOption>,
     onBack: () -> Unit,
     onSaveChanges: (AddAlarmForm) -> Unit
 ) {
     var title by remember { mutableStateOf(TextFieldValue(alarm.title)) }
 
-    // repeatDays sudah List<Boolean> di Alarm baru
+
     var days by remember { mutableStateOf(alarm.repeatDays.toMutableList()) }
 
     var dateMillis by remember { mutableStateOf(alarm.dateMillis) }
