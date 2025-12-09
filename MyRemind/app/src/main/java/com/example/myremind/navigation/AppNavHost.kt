@@ -6,6 +6,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.ui.platform.LocalContext
+import com.example.myremind.alarm.AlarmScheduler
 import com.example.myremind.controller.*
 import com.example.myremind.model.*
 import com.example.myremind.ui.mapper.*
@@ -18,9 +20,16 @@ fun AppNavHost() {
     val userController = remember { UserController() }
     val groupController = remember { GroupController() }
     val alarmController = remember { AlarmController() }
-
+    val context = LocalContext.current
+    val alarmScheduler = remember(context) { AlarmScheduler(context) }
     var refreshFlag by remember { mutableStateOf(0) }
     fun refreshUI() { refreshFlag++ }
+
+    LaunchedEffect(alarmController.alarmList) {
+        alarmController.alarmList.filter { it.enabled }.forEach { alarm ->
+            alarmScheduler.scheduleAlarm(alarm)
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -254,7 +263,8 @@ fun AppNavHost() {
 
                     val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
 
-                    alarmController.saveAlarm(alarm) {
+                    alarmController.saveAlarm(alarm) { savedAlarm ->
+                        alarmScheduler.scheduleAlarm(savedAlarm)
                         alarmController.loadAlarms(joinedGroupIds)
                         navController.navigate(NavRoute.ALARM) {
                             popUpTo(NavRoute.ADD) { inclusive = true }
@@ -386,6 +396,7 @@ fun AppNavHost() {
                     alarmController.getAlarmById(id)
                 }
                     alarmsToDelete.forEach { alarm ->
+                        alarmScheduler.cancelAlarm(alarm)
                         alarmController.deleteAlarm(alarm)
                     }
                 }
@@ -446,7 +457,8 @@ fun AppNavHost() {
                     )
                     val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
 
-                    alarmController.saveAlarm(editedAlarm) {
+                    alarmController.saveAlarm(editedAlarm) { savedAlarm ->
+                        alarmScheduler.scheduleAlarm(savedAlarm)
                         alarmController.loadAlarms(joinedGroupIds)
                         navController.navigate(NavRoute.ALARM) {
                             popUpTo(NavRoute.ALARM) { inclusive = true }

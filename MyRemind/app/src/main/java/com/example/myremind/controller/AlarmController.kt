@@ -23,7 +23,7 @@ class AlarmController : ViewModel() {
         private set
 
     fun clearError() { lastError = null }
-    fun saveAlarm(alarm: Alarm, onSuccess: () -> Unit = {}) {
+    fun saveAlarm(alarm: Alarm, onSuccess: (Alarm) -> Unit = {}) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid == null) {
             lastError = "User belum login."
@@ -37,7 +37,7 @@ class AlarmController : ViewModel() {
             try {
                 val fs = FirebaseFirestore.getInstance()
 
-                
+
                 val alarmsRef = when (alarm.ownerType) {
                     "personal" -> {
                         fs.collection("users")
@@ -58,9 +58,9 @@ class AlarmController : ViewModel() {
                     else -> throw IllegalArgumentException("ownerType tidak valid.")
                 }
 
-                
+
                 val docRef = if (alarm.id.isBlank()) {
-                    alarmsRef.document() 
+                    alarmsRef.document()
                 } else {
                     alarmsRef.document(alarm.id)
                 }
@@ -68,7 +68,7 @@ class AlarmController : ViewModel() {
                 val alarmToSave = alarm.copy(id = docRef.id)
                 docRef.set(alarmToSave).await()
 
-                onSuccess()
+                onSuccess(alarmToSave)
 
             } catch (e: Exception) {
                 lastError = e.message ?: "Gagal menyimpan alarm."
