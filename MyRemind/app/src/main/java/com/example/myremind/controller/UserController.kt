@@ -17,16 +17,12 @@ import kotlinx.coroutines.tasks.await
 
 class UserController() : ViewModel() {
     var currentUser by mutableStateOf<User?>(null)
-
     var lastError by mutableStateOf<String?>(null)
         private set
-
     var loading by mutableStateOf(false)
         private set
-
     var infoMessage by mutableStateOf<String?>(null)
         private set
-
     fun clearError() { lastError = null }
     fun clearInfo() { infoMessage = null }
 

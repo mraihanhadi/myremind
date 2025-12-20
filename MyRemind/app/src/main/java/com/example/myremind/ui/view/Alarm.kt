@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -38,6 +39,7 @@ fun AlarmScreen(
     onClickGroup: () -> Unit,
     onClickProfile: () -> Unit,
     onClickDelete: () -> Unit,
+    onToggleAlarm: (String, Boolean) -> Unit,
     onAlarmClick: (String) -> Unit
 ) {
     Box(
@@ -75,10 +77,10 @@ fun AlarmScreen(
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit alarms",
-                        tint = TextWhite,
-                        modifier = Modifier.size(32.dp)
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = Color(0xFFFFFFFF),
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
@@ -95,6 +97,7 @@ fun AlarmScreen(
                 items(alarms, key = { it.id }) { alarm ->
                     AlarmGridCard(
                         alarm = alarm,
+                        onToggle = { enabled -> onToggleAlarm(alarm.id, enabled) },
                         onClick = { onAlarmClick(alarm.id) }
                     )
                 }
@@ -116,6 +119,7 @@ fun AlarmScreen(
 @Composable
 fun AlarmGridCard(
     alarm: AlarmSmall,
+    onToggle: (Boolean) -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -165,7 +169,7 @@ fun AlarmGridCard(
 
             AlarmToggle(
                 checked = alarm.enabled,
-                onCheckedChange = { }
+                onCheckedChange = onToggle
             )
         }
     }
@@ -174,7 +178,10 @@ fun AlarmGridCard(
 @Composable
 fun DaysRowSmall(days: List<DayInfo>) {
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             days.forEach { day ->
                 Box(
                     modifier = Modifier.width(18.dp),
@@ -192,14 +199,17 @@ fun DaysRowSmall(days: List<DayInfo>) {
 
         Spacer(Modifier.height(8.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             days.forEach { day ->
                 Text(
                     text = day.letter,
                     color = AccentYellow,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.width(18.dp),
+                    modifier = Modifier.width(9.dp),
                     lineHeight = 20.sp
                 )
             }

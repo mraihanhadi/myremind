@@ -1,27 +1,48 @@
 package com.example.myremind.navigation
 
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.*
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.myremind.controller.*
 import com.example.myremind.model.*
 import com.example.myremind.ui.mapper.*
 import com.example.myremind.ui.view.*
-
+import androidx.compose.ui.platform.LocalContext
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    val ctxt = LocalContext.current.applicationContext
 
     val userController = remember { UserController() }
     val groupController = remember { GroupController() }
-    val alarmController = remember { AlarmController() }
+    val alarmController = remember(ctxt) { AlarmController(ctxt) }
 
     var refreshFlag by remember { mutableStateOf(0) }
     fun refreshUI() { refreshFlag++ }
+    val context = LocalContext.current
+    val activity = context as? Activity
+    var lastBackPress by remember { mutableStateOf(0L) }
 
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+    val exitRoutes = remember { setOf(NavRoute.HOME, NavRoute.ALARM, NavRoute.GROUP, NavRoute.PROFILE) }
+
+    BackHandler(enabled = currentRoute in exitRoutes) {
+        val now = System.currentTimeMillis()
+        if (now - lastBackPress < 2000) {
+            activity?.finish()
+        } else {
+            lastBackPress = now
+            Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
+        }
+    }
     NavHost(
         navController = navController,
         startDestination = NavRoute.SIGNIN
@@ -200,6 +221,9 @@ fun AppNavHost() {
                 onClickDelete = {
                     navController.navigate(NavRoute.ALARM_DELETE) { launchSingleTop = true }
                 },
+                onToggleAlarm = { alarmId, enabled ->
+                    alarmController.updateAlarmEnabled(alarmId, enabled)
+                },
                 onAlarmClick = { alarmId ->
                     navController.navigate(NavRoute.editAlarmRoute(alarmId)) {
                         launchSingleTop = true
@@ -234,6 +258,10 @@ fun AppNavHost() {
                     val target = form.selectedTarget
                     val ownerType = target.ownerType.lowercase()
 
+                    if (form.title.isBlank()) {
+                        alarmController.clearError()
+                        return@AddAlarmScreen
+                    }
 
                     if (ownerType == "group" && target.groupId.isNullOrBlank()) {
                         alarmController.clearError()
@@ -257,7 +285,7 @@ fun AppNavHost() {
                     alarmController.saveAlarm(alarm) {
                         alarmController.loadAlarms(joinedGroupIds)
                         navController.navigate(NavRoute.ALARM) {
-                            popUpTo(NavRoute.ADD) { inclusive = true }
+                            popUpTo(NavRoute.ALARM) { inclusive = true }
                             launchSingleTop = true
                         }
                     }
@@ -382,11 +410,16 @@ fun AppNavHost() {
                 onClickProfile = {
                     navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
                 },
-                onDeleteSelected = { selectedIds -> val alarmsToDelete = selectedIds.mapNotNull { id ->
-                    alarmController.getAlarmById(id)
-                }
-                    alarmsToDelete.forEach { alarm ->
-                        alarmController.deleteAlarm(alarm)
+                onDeleteSelected = { selectedIds ->
+                    val alarmsToDelete = selectedIds.mapNotNull { id ->
+                        alarmController.getAlarmById(id)
+                    }
+                    alarmController.deleteAlarms(alarmsToDelete) {
+                        alarmController.loadAlarms(joinedGroupIds)
+                        navController.navigate(NavRoute.ALARM) {
+                            popUpTo(NavRoute.ALARM_DELETE) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
                 }
             )
@@ -510,13 +543,17 @@ fun AppNavHost() {
                             groupId = groupId,
                             currentUserEmail = currentEmail
                         ) {
-                            navController.navigate(NavRoute.GROUP) {
-                                popUpTo(NavRoute.GROUP) { inclusive = true }
-                                launchSingleTop = true
-                            }
+                            groupController.refreshGroupsFor(currentEmail)
+
+                            // ✅ Pop semua di atas GROUP (termasuk GroupInfo), lalu current route = GROUP
+                            navController.popBackStack(
+                                route = NavRoute.GROUP,
+                                inclusive = false
+                            )
                         }
                     }
                 }
+
             )
         }
 

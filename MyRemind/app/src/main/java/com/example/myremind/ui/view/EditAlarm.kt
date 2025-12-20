@@ -153,14 +153,6 @@ fun EditAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                PillButtonField(
-                    text = dateText,
-                    trailing = {
-                        Icon(Icons.Default.CalendarMonth, contentDescription = "Pick date", tint = Color.Black)
-                    },
-                    onClick = { showDatePicker = true }
-                )
-
                 Spacer(Modifier.height(10.dp))
 
                 PillButtonField(

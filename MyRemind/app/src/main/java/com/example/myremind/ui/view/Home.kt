@@ -158,10 +158,10 @@ fun AlarmBigCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    verticalAlignment = Alignment.Bottom
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = alarm.time,
@@ -185,9 +185,9 @@ fun AlarmBigCard(
                 Text(
                     text = alarm.group,
                     color = TextWhite,
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.Light,
-                    lineHeight = 36.sp
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 22.sp
                 )
             }
 

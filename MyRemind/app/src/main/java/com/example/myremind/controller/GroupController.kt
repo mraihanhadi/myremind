@@ -139,7 +139,7 @@ class GroupController : ViewModel() {
         email: String,
         groupId: String,
         currentUserEmail: String,
-        onSuccess: (Group) -> Unit
+        onSuccess: () -> Unit
     ) {
         if (email.isBlank() || groupId.isBlank()) {
             lastError = "Email / groupId tidak valid."
@@ -152,19 +152,27 @@ class GroupController : ViewModel() {
         viewModelScope.launch {
             try {
                 val firestore = FirebaseFirestore.getInstance()
-
                 val docRef = firestore
                     .collection("groups")
                     .document(groupId)
 
+                
                 docRef.update("members", FieldValue.arrayRemove(email)).await()
 
-                val updated = docRef.get().await().toObject(Group::class.java)
+                
+                val updatedSnap = docRef.get().await()
+                val members = updatedSnap.get("members") as? List<*>
 
+                
+                if (members.isNullOrEmpty()) {
+                    docRef.delete().await()
+                }
+
+                
                 refreshGroupsFor(currentUserEmail)
-                loading = false
 
-                if (updated != null) onSuccess(updated)
+                loading = false
+                onSuccess()  
 
             } catch (e: Exception) {
                 loading = false
@@ -172,6 +180,8 @@ class GroupController : ViewModel() {
             }
         }
     }
+
+
     fun getGroupDetail(groupId: String, onResult: (Group?) -> Unit) {
         if (groupId.isBlank()) {
             onResult(null)
