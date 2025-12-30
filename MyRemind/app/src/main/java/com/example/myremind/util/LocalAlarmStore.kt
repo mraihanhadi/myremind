@@ -20,7 +20,6 @@ class LocalAlarmStore(context: Context) {
             .putInt(key(alarm.id, "hour"), alarm.hour ?: 0)
             .putInt(key(alarm.id, "minute"), alarm.minute ?: 0)
             .putBoolean(key(alarm.id, "enabled"), alarm.enabled)
-            // repeatDays -> "1010100"
             .putString(key(alarm.id, "repeat"), alarm.repeatDays.joinToString("") { if (it) "1" else "0" })
             .apply()
     }
