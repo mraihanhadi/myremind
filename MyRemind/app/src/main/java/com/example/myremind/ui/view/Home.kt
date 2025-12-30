@@ -42,8 +42,7 @@ fun HomeScreen(
     onClickAlarm: () -> Unit,
     onClickAdd: () -> Unit,
     onClickGroup: () -> Unit,
-    onClickProfile: () -> Unit,
-    onClickBell: () -> Unit
+    onClickProfile: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -87,18 +86,6 @@ fun HomeScreen(
                             fontSize = 40.sp,
                             fontWeight = FontWeight.Medium,
                             lineHeight = 44.sp
-                        )
-                    }
-
-                    IconButton(
-                        onClick = onClickBell,
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notifications",
-                            tint = TextWhite,
-                            modifier = Modifier.size(36.dp)
                         )
                     }
                 }

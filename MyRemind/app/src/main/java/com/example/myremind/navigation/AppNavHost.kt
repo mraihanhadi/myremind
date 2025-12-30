@@ -175,8 +175,7 @@ fun AppNavHost() {
                 },
                 onClickProfile = {
                     navController.navigate(NavRoute.PROFILE) { launchSingleTop = true }
-                },
-                onClickBell = { }
+                }
             )
         }
 
