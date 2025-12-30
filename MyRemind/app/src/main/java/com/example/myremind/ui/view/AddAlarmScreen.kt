@@ -52,11 +52,12 @@ fun AddAlarmScreen(
     onSave: (AddAlarmForm) -> Unit,
 ) {
     var title by remember { mutableStateOf(TextFieldValue("")) }
-    var desc by remember { mutableStateOf(TextFieldValue("")) }
     var days by remember { mutableStateOf(List(7) { false }) }
 
     val cal = remember { Calendar.getInstance() }
-
+    val isTitleValid by remember {
+        derivedStateOf { title.text.trim().isNotEmpty() }
+    }
     var hour by remember { mutableStateOf<Int?>(null) }
     var minute by remember { mutableStateOf<Int?>(null) }
 
@@ -71,11 +72,7 @@ fun AddAlarmScreen(
             )
         )
     }
-
-    var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
-
-    val dateFmt = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val timeText = remember(hour, minute) {
         if (hour != null && minute != null) {
             String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
@@ -147,30 +144,35 @@ fun AddAlarmScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                GroupPickerField(
-                    selectedLabel = selectedTarget.label,
-                    onClick = { expanded = true }
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(Color.White)
-                ) {
-                    groupChoices.forEach { option ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = option.label,
-                                    color = Color.Black,
-                                    fontSize = 16.sp
-                                )
-                            },
-                            onClick = {
-                                selectedTarget = option
-                                expanded = false
-                            }
-                        )
+                    GroupPickerField(
+                        selectedLabel = selectedTarget.label,
+                        onClick = { expanded = true }
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier
+                            .width(220.dp)
+                            .background(Color.White)
+                    ) {
+                        groupChoices.forEach { option ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = option.label,
+                                        color = Color.Black,
+                                        fontSize = 16.sp
+                                    )
+                                },
+                                onClick = {
+                                    selectedTarget = option
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -193,6 +195,7 @@ fun AddAlarmScreen(
                 Spacer(Modifier.height(20.dp))
 
                 Button(
+                    enabled = isTitleValid,
                     onClick = {
                         onSave(
                             AddAlarmForm(

@@ -116,7 +116,15 @@ fun GroupAddMemberScreen(
                     )
                 )
             }
-
+            if (!errorMessage.isNullOrBlank()) {
+                Text(
+                    text = errorMessage,
+                    color = Color(0xFFFF2B2B),
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .padding(start = 32.dp, top = 8.dp)
+                )
+            }
             
             Spacer(modifier = Modifier.weight(1f))
 

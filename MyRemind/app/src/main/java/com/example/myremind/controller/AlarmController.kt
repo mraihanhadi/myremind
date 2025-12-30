@@ -44,16 +44,12 @@ class AlarmController(private val context: Context) : ViewModel() {
             lastError = "User belum login."
             return
         }
-
         loading = true
         lastError = null
-
         viewModelScope.launch {
             var saveSuccess = false
-
             try {
                 val fs = FirebaseFirestore.getInstance()
-
                 val alarmsRef = when (alarm.ownerType) {
                     "personal" -> {
                         fs.collection("users")
@@ -73,7 +69,6 @@ class AlarmController(private val context: Context) : ViewModel() {
 
                     else -> throw IllegalArgumentException("ownerType tidak valid.")
                 }
-
                 val docRef = if (alarm.id.isBlank()) {
                     alarmsRef.document()
                 } else {
@@ -83,10 +78,14 @@ class AlarmController(private val context: Context) : ViewModel() {
                 docRef.set(alarmToSave).await()
                 saveSuccess = true
                 try {
-                    alarmScheduler.schedule(alarmToSave)
+                    if (alarmToSave.enabled) {
+                        alarmScheduler.schedule(alarmToSave)
+                    } else {
+                        alarmScheduler.cancel(alarmToSave)
+                    }
                 } catch (e: Exception) {
+                    lastError = e.message
                 }
-
             } catch (e: Exception) {
                 lastError = e.message ?: "Gagal menyimpan alarm."
             } finally {
@@ -98,8 +97,34 @@ class AlarmController(private val context: Context) : ViewModel() {
         }
     }
 
+    fun addAlarm(
+        alarm: Alarm,
+        onSuccess: () -> Unit = {}
+    ) {
+        if (alarm.id.isNotBlank()) {
+            lastError = "Alarm baru tidak boleh memiliki ID."
+            return
+        }
 
-    fun loadAlarms(joinedGroupIds: List<String>) {
+        saveAlarm(alarm, onSuccess)
+    }
+
+    fun editAlarm(
+        alarm: Alarm,
+        onSuccess: () -> Unit = {}
+    ) {
+        if (alarm.id.isBlank()) {
+            lastError = "Alarm yang diedit harus memiliki ID."
+            return
+        }
+        try {
+            alarmScheduler.cancel(alarm)
+        } catch (_: Exception) {}
+
+        saveAlarm(alarm, onSuccess)
+    }
+
+    fun viewAllAlarms(joinedGroupIds: List<String>) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
         loading = true
         lastError = null
@@ -153,6 +178,9 @@ class AlarmController(private val context: Context) : ViewModel() {
                 val fs = FirebaseFirestore.getInstance()
 
                 alarms.forEach { alarm ->
+                    try {
+                        alarmScheduler.cancelById(alarm.id)
+                    } catch (e: Exception) {lastError = e.message}
                     val docRef = if (alarm.ownerType == "group") {
                         val gid = alarm.groupId ?: throw IllegalArgumentException("groupId kosong.")
                         fs.collection("groups")

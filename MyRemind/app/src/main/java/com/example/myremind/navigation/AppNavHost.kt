@@ -154,7 +154,7 @@ fun AppNavHost() {
             val joinedKey = joinedGroupIds.joinToString(",")
 
             LaunchedEffect(joinedKey) {
-                alarmController.loadAlarms(joinedGroupIds)
+                alarmController.viewAllAlarms(joinedGroupIds)
             }
 
 
@@ -194,7 +194,7 @@ fun AppNavHost() {
             val joinedKey = joinedGroupIds.joinToString(",")
 
             LaunchedEffect(joinedKey) {
-                alarmController.loadAlarms(joinedGroupIds)
+                alarmController.viewAllAlarms(joinedGroupIds)
             }
 
 
@@ -282,8 +282,8 @@ fun AppNavHost() {
 
                     val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
 
-                    alarmController.saveAlarm(alarm) {
-                        alarmController.loadAlarms(joinedGroupIds)
+                    alarmController.addAlarm(alarm) {
+                        alarmController.viewAllAlarms(joinedGroupIds)
                         navController.navigate(NavRoute.ALARM) {
                             popUpTo(NavRoute.ALARM) { inclusive = true }
                             launchSingleTop = true
@@ -380,7 +380,7 @@ fun AppNavHost() {
             val joinedKey = joinedGroupIds.joinToString(",")
 
             LaunchedEffect(joinedKey) {
-                alarmController.loadAlarms(joinedGroupIds)
+                alarmController.viewAllAlarms(joinedGroupIds)
             }
 
 
@@ -415,7 +415,7 @@ fun AppNavHost() {
                         alarmController.getAlarmById(id)
                     }
                     alarmController.deleteAlarms(alarmsToDelete) {
-                        alarmController.loadAlarms(joinedGroupIds)
+                        alarmController.viewAllAlarms(joinedGroupIds)
                         navController.navigate(NavRoute.ALARM) {
                             popUpTo(NavRoute.ALARM_DELETE) { inclusive = true }
                             launchSingleTop = true
@@ -479,8 +479,8 @@ fun AppNavHost() {
                     )
                     val joinedGroupIds = groupController.groupsForCurrentUser.map { it.id }
 
-                    alarmController.saveAlarm(editedAlarm) {
-                        alarmController.loadAlarms(joinedGroupIds)
+                    alarmController.editAlarm(editedAlarm) {
+                        alarmController.viewAllAlarms(joinedGroupIds)
                         navController.navigate(NavRoute.ALARM) {
                             popUpTo(NavRoute.ALARM) { inclusive = true }
                             launchSingleTop = true
@@ -542,18 +542,14 @@ fun AppNavHost() {
                             email = currentEmail,
                             groupId = groupId,
                             currentUserEmail = currentEmail
-                        ) {
-                            groupController.refreshGroupsFor(currentEmail)
-
-                            // ✅ Pop semua di atas GROUP (termasuk GroupInfo), lalu current route = GROUP
-                            navController.popBackStack(
-                                route = NavRoute.GROUP,
-                                inclusive = false
-                            )
+                        ) { _ ->
+                            navController.navigate(NavRoute.GROUP) {
+                                popUpTo(NavRoute.GROUP) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         }
                     }
                 }
-
             )
         }
 
@@ -587,6 +583,7 @@ fun AppNavHost() {
             arguments = listOf(navArgument("groupId") { type = NavType.StringType })
         ) { backStackEntry ->
 
+
             val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
             val currentUserEmail = userController.currentUser?.getEmail().orEmpty()
 
@@ -602,6 +599,7 @@ fun AppNavHost() {
                 onBack = { navController.popBackStack() },
                 onAddMember = { emailToAdd ->
                     if (groupId.isNotBlank() && currentUserEmail.isNotBlank()) {
+                        groupController.clearError()
                         groupController.addUser(
                             email = emailToAdd,
                             groupId = groupId,
